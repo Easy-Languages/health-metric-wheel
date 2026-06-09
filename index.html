@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Health Metric Wheel</title>
+<style>
+  :root {
+    --bg: #fbfaf8;
+    --ink: #2b2b2b;
+    --muted: #777;
+    --line: #e3e0db;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.45;
+  }
+  .wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 650; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+  .layout { display: flex; gap: 36px; flex-wrap: wrap; align-items: flex-start; }
+  .controls { flex: 1 1 260px; min-width: 260px; }
+  .wheel { flex: 1 1 460px; min-width: 320px; text-align: center; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 4px; }
+  input[type="text"] {
+    width: 100%; padding: 8px 10px; font-size: 15px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--card);
+  }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+         padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .row .name { font-size: 13px; max-width: 70%; }
+  .seg { display: flex; gap: 6px; }
+  .seg button {
+    width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--card); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted);
+  }
+  .seg button.active { color: #fff; border-color: transparent; }
+  figcaption { margin-top: 14px; font-size: 14px; color: var(--muted); }
+  figcaption strong { color: var(--ink); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+            margin-top: 18px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+  svg text { font-family: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Health Metric Wheel</h1>
+  <p class="sub">Easy Languages team health — 7 categories, scored 1–4. Strong reads green, weak reads red.</p>
+
+  <div class="layout">
+    <div class="controls">
+      <label for="team">Team</label>
+      <input type="text" id="team" placeholder="e.g. Easy Portuguese" value="Easy Portuguese" />
+      <div id="rows"></div>
+    </div>
+
+    <figure class="wheel" style="margin:0;">
+      <svg id="chart" viewBox="0 0 520 520" width="100%" style="max-width:520px;"></svg>
+      <figcaption id="caption"></figcaption>
+      <div class="legend" id="legend"></div>
+    </figure>
+  </div>
+</div>
+
+<script>
+// ----- CONFIG: edit categories + scale here, no rebuild needed -----
+const CONFIG = {
+  categories: [
+    "Content Quality",
+    "Audience Connection",
+    "Learner Understanding & Educational Value",
+    "Audience Growth",
+    "Business Model & Monetization",
+    "Strategic Focus",
+    "Team Health & Leadership",
+  ],
+  scale: {
+    1: { label: "Needs Attention", color: "#e5484d" },
+    2: { label: "Developing",      color: "#f5a524" },
+    3: { label: "Strong",          color: "#9bb83a" },
+    4: { label: "Excellent",       color: "#3a9b5c" },
+  },
+};
+// -------------------------------------------------------------------
+
+const MIN = 1, MAX = 4;
+const N = CONFIG.categories.length;
+const scores = CONFIG.categories.map(() => 3); // sensible default
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+const SIZE = 520, CENTER = SIZE / 2, MAXR = 168;
+
+function colorFor(score) {
+  return (CONFIG.scale[Math.round(score)] || CONFIG.scale[MAX]).color;
+}
+function angleFor(i) { return (-90 + i * (360 / N)) * Math.PI / 180; }
+function radiusFor(score) {
+  // map MIN..MAX onto a small inner radius..MAXR (so a 1 is still visible)
+  const inner = MAXR * 0.18;
+  return inner + (score - MIN) / (MAX - MIN) * (MAXR - inner);
+}
+function pt(angle, r) { return [CENTER + r * Math.cos(angle), CENTER + r * Math.sin(angle)]; }
+function el(name, attrs, text) {
+  const e = document.createElementNS(SVG_NS, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function drawChart() {
+  const svg = document.getElementById("chart");
+  svg.innerHTML = "";
+  const sliceHalf = Math.PI / N;
+
+  // grid rings
+  for (let s = MIN; s <= MAX; s++) {
+    const r = radiusFor(s);
+    const ring = [];
+    for (let i = 0; i < N; i++) { const [x, y] = pt(angleFor(i) - sliceHalf, r); ring.push(`${x},${y}`); }
+    svg.appendChild(el("polygon", { points: ring.join(" "), fill: "none", stroke: "#ece9e4", "stroke-width": 1 }));
+  }
+
+  // colored wedges (one per category, radius + color by score)
+  for (let i = 0; i < N; i++) {
+    const a0 = angleFor(i) - sliceHalf, a1 = angleFor(i) + sliceHalf;
+    const r = radiusFor(scores[i]);
+    const [x0, y0] = pt(a0, r), [x1, y1] = pt(a1, r);
+    const d = `M ${CENTER} ${CENTER} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z`;
+    svg.appendChild(el("path", { d, fill: colorFor(scores[i]), "fill-opacity": 0.62, stroke: "#fff", "stroke-width": 1 }));
+  }
+
+  // axis lines + labels
+  for (let i = 0; i < N; i++) {
+    const a = angleFor(i);
+    const [ax, ay] = pt(a, MAXR);
+    svg.appendChild(el("line", { x1: CENTER, y1: CENTER, x2: ax, y2: ay, stroke: "#ddd8d1", "stroke-width": 1 }));
+    const [lx, ly] = pt(a, MAXR + 22);
+    const anchor = Math.abs(lx - CENTER) < 6 ? "middle" : (lx < CENTER ? "end" : "start");
+    const words = CONFIG.categories[i].split(" ");
+    // wrap long labels onto up to 2 lines
+    const lines = words.length > 2 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : [CONFIG.categories[i]];
+    const t = el("text", { x: lx, y: ly - (lines.length - 1) * 6, "text-anchor": anchor, "font-size": 11, fill: "#555", "font-weight": 600 });
+    lines.forEach((ln, k) => t.appendChild(el("tspan", { x: lx, dy: k === 0 ? 0 : 13 }, ln)));
+    svg.appendChild(t);
+    // score pill near label
+    const [sx, sy] = pt(a, MAXR + 2);
+    svg.appendChild(el("circle", { cx: sx, cy: sy, r: 9, fill: colorFor(scores[i]) }));
+    svg.appendChild(el("text", { x: sx, y: sy + 3.5, "text-anchor": "middle", "font-size": 10, fill: "#fff", "font-weight": 700 }, scores[i]));
+  }
+
+  // score polygon outline (the shape)
+  const poly = [];
+  for (let i = 0; i < N; i++) { const [x, y] = pt(angleFor(i), radiusFor(scores[i])); poly.push(`${x},${y}`); }
+  svg.appendChild(el("polygon", { points: poly.join(" "), fill: "none", stroke: "#3a3a3a", "stroke-width": 1.6, "stroke-opacity": 0.55 }));
+}
+
+function drawCaption() {
+  const team = document.getElementById("team").value.trim() || "—";
+  const avg = (scores.reduce((a, b) => a + b, 0) / N).toFixed(1);
+  document.getElementById("caption").innerHTML = `<strong>${team}</strong> · average ${avg} / ${MAX}`;
+}
+
+function drawLegend() {
+  const wrap = document.getElementById("legend");
+  wrap.innerHTML = "";
+  for (let s = MIN; s <= MAX; s++) {
+    const sp = document.createElement("span");
+    sp.innerHTML = `<span class="dot" style="background:${CONFIG.scale[s].color}"></span>${s} · ${CONFIG.scale[s].label}`;
+    wrap.appendChild(sp);
+  }
+}
+
+function buildRows() {
+  const wrap = document.getElementById("rows");
+  wrap.innerHTML = "";
+  CONFIG.categories.forEach((cat, i) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = cat;
+    const seg = document.createElement("div");
+    seg.className = "seg";
+    for (let s = MIN; s <= MAX; s++) {
+      const b = document.createElement("button");
+      b.textContent = s;
+      if (scores[i] === s) { b.classList.add("active"); b.style.background = CONFIG.scale[s].color; }
+      b.addEventListener("click", () => { scores[i] = s; buildRows(); render(); });
+      seg.appendChild(b);
+    }
+    row.appendChild(name); row.appendChild(seg);
+    wrap.appendChild(row);
+  });
+}
+
+function render() { drawChart(); drawCaption(); drawLegend(); }
+
+document.getElementById("team").addEventListener("input", drawCaption);
+buildRows();
+render();
+</script>
+</body>
+</html>
