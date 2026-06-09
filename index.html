@@ -135,17 +135,25 @@ const MIN=1, MAX=4, N=CONFIG.categories.length;
 const STORE_KEY="hmw.v1";
 
 // ---------- persistence ----------
+// Storage is wrapped so a blocked/absent localStorage (e.g. opening the file
+// directly in some browsers) can never crash the page. Falls back to in-memory:
+// the tool still works for the session, it just won't remember after a reload.
+let _mem=null, storageOK=true;
+const SAFE={
+  get(){ try { return localStorage.getItem(STORE_KEY); } catch(e){ storageOK=false; return _mem; } },
+  set(v){ try { localStorage.setItem(STORE_KEY, v); } catch(e){ storageOK=false; _mem=v; } },
+};
 function uid(){ return "t"+Math.floor(performance.now()*1000).toString(36)+Math.floor(performance.now()).toString(36); }
 function seed(){ return { teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
 function load(){
-  let s; try { s=JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e){ s=null; }
+  let s; try { s=JSON.parse(SAFE.get()); } catch(e){ s=null; }
   if(!s || !s.teams || !s.teams.length) s=seed();
   if(!s.activeId || !s.teams.find(t=>t.id===s.activeId)) s.activeId=s.teams[0].id;
   // normalise score length to N
   s.teams.forEach(t=>{ while(t.scores.length<N) t.scores.push(3); t.scores=t.scores.slice(0,N); if(!t.view) t.view="wheel"; });
   return s;
 }
-function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+function persist(){ SAFE.set(JSON.stringify(store)); }
 let store=load();
 const active=()=>store.teams.find(t=>t.id===store.activeId);
 let scores=active().scores;
@@ -328,7 +336,9 @@ document.getElementById("fileIn").addEventListener("change",e=>{
 
 // ---------- boot ----------
 persist();
-document.getElementById("hint").textContent="Teams are saved in this browser. Use Download backup to keep a copy you can move or restore.";
+document.getElementById("hint").textContent = storageOK
+  ? "Teams are saved in this browser. Use Download backup to keep a copy you can move or restore."
+  : "Heads up: this browser is blocking local save (common when opening the file directly), so teams won't survive a reload. Use Download backup to keep your data, or serve the folder over http.";
 document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
 buildTeamSel();buildRows();render();
 </script>
