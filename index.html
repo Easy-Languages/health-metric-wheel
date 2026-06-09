@@ -34,6 +34,11 @@
   .layout { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
   .controls { flex:0 0 240px; min-width:220px; }
   .stage { flex:1 1 520px; min-width:340px; text-align:center; }
+  .scalekey { margin:0 0 14px; padding:10px 12px; background:var(--card); border:1px solid var(--line); border-radius:10px; }
+  .scalekey .skh { font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:7px; }
+  .scalekey .ski { display:flex; align-items:center; gap:7px; font-size:12px; margin:3px 0; }
+  .scalekey .ski .dot { width:11px; height:11px; border-radius:3px; flex:0 0 auto; }
+  .scalekey .ski b { font-weight:700; width:9px; }
   .row { display:flex; align-items:center; justify-content:space-between; gap:8px;
          padding:7px 0; border-bottom:1px solid var(--line); }
   .row .name { font-size:12.5px; max-width:62%; }
@@ -98,6 +103,7 @@
 
   <div class="layout">
     <div class="controls">
+      <div class="scalekey" id="scaleKey"></div>
       <div id="rows"></div>
       <p class="hint" id="hint"></p>
     </div>
@@ -260,10 +266,14 @@ function buildRows(){const wrap=document.getElementById("rows");wrap.innerHTML="
     const name=document.createElement("div");name.className="name";name.textContent=cat;
     const seg=document.createElement("div");seg.className="seg";
     for(let s=MIN;s<=MAX;s++){const b=document.createElement("button");b.textContent=s;
+      b.title=s+" · "+CONFIG.scale[s].label;
       if(scores[i]===s){b.classList.add("active");b.style.background=CONFIG.scale[s].color;}
       b.addEventListener("click",()=>{scores[i]=s;active().scores=scores;persist();buildRows();render();});seg.appendChild(b);}
     row.appendChild(name);row.appendChild(seg);wrap.appendChild(row);});
 }
+function buildScaleKey(){const k=document.getElementById("scaleKey");
+  k.innerHTML='<div class="skh">What the scores mean</div>'+
+    [MIN,2,3,MAX].map(s=>`<div class="ski"><span class="dot" style="background:${CONFIG.scale[s].color}"></span><b>${s}</b> ${CONFIG.scale[s].label}</div>`).join("");}
 function buildTeamSel(){const sel=document.getElementById("teamSel");sel.innerHTML="";
   store.teams.forEach(t=>{const o=document.createElement("option");o.value=t.id;o.textContent=t.name;if(t.id===store.activeId)o.selected=true;sel.appendChild(o);});
 }
@@ -340,7 +350,7 @@ document.getElementById("hint").textContent = storageOK
   ? "Teams are saved in this browser. Use Download backup to keep a copy you can move or restore."
   : "Heads up: this browser is blocking local save (common when opening the file directly), so teams won't survive a reload. Use Download backup to keep your data, or serve the folder over http.";
 document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
-buildTeamSel();buildRows();render();
+buildScaleKey();buildTeamSel();buildRows();render();
 </script>
 </body>
 </html>
