@@ -5,52 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Health Metric Wheel</title>
 <style>
-  :root {
-    --bg: #fbfaf8;
-    --ink: #2b2b2b;
-    --muted: #777;
-    --line: #e3e0db;
-    --card: #ffffff;
-  }
+  :root { --bg:#fbfaf8; --ink:#2b2b2b; --muted:#777; --line:#e3e0db; --card:#fff; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    color: var(--ink);
-    background: var(--bg);
-    line-height: 1.45;
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+         color:var(--ink); background:var(--bg); line-height:1.45; }
+  .wrap { max-width:1040px; margin:0 auto; padding:28px 24px 64px; }
+  h1 { font-size:21px; margin:0 0 4px; font-weight:650; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 20px; }
+
+  .toolbar { display:flex; gap:18px; align-items:center; flex-wrap:wrap;
+             padding:12px 14px; background:var(--card); border:1px solid var(--line);
+             border-radius:12px; margin-bottom:16px; }
+  .toolbar .group { display:flex; gap:8px; align-items:center; }
+  .toolbar .spacer { flex:1 1 auto; }
+  select { padding:7px 10px; font-size:14px; border:1px solid var(--line); border-radius:8px;
+           background:var(--card); font-weight:600; min-width:170px; }
+  .btn { padding:7px 12px; border:1px solid var(--line); background:var(--card); border-radius:8px;
+         cursor:pointer; font-size:13px; font-weight:600; color:var(--ink); }
+  .btn:hover { border-color:#cfccc6; }
+  .btn.ghost { color:var(--muted); }
+
+  .tabs { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .tabs button { padding:8px 14px; border:1px solid var(--line); background:var(--card);
+                 border-radius:9px; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); }
+  .tabs button.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .blurb { font-size:13px; color:var(--muted); margin:6px 0 18px; min-height:18px; }
+
+  .layout { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
+  .controls { flex:0 0 240px; min-width:220px; }
+  .stage { flex:1 1 520px; min-width:340px; text-align:center; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:8px;
+         padding:7px 0; border-bottom:1px solid var(--line); }
+  .row .name { font-size:12.5px; max-width:62%; }
+  .seg { display:flex; gap:5px; }
+  .seg button { width:28px; height:28px; border-radius:7px; border:1px solid var(--line);
+                background:var(--card); cursor:pointer; font-size:12px; font-weight:600; color:var(--muted); }
+  .seg button.active { color:#fff; border-color:transparent; }
+  figcaption { margin-top:10px; font-size:14px; color:var(--muted); }
+  figcaption strong { color:var(--ink); font-size:16px; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:16px; font-size:12px; color:var(--muted); }
+  .legend span { display:inline-flex; align-items:center; gap:5px; }
+  .dot { width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .hint { font-size:11.5px; color:#aaa; margin-top:26px; }
+  svg text { font-family:inherit; }
+
+  .bars { text-align:left; max-width:560px; margin:0 auto; }
+  .bar-row { margin:0 0 14px; }
+  .bar-row .lab { display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px; }
+  .bar-row .lab b { font-weight:600; }
+  .track { height:18px; background:#eee8e0; border-radius:9px; overflow:hidden; }
+  .fill { height:100%; border-radius:9px; }
+
+  @media print {
+    .toolbar, .tabs, .blurb, .controls, .sub, .hint, h1 { display:none !important; }
+    .layout { display:block; }
+    .stage { width:100%; min-width:0; }
+    body { background:#fff; }
+    .wrap { padding:0; }
   }
-  .wrap {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 32px 24px 64px;
-  }
-  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 650; }
-  .sub { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
-  .layout { display: flex; gap: 36px; flex-wrap: wrap; align-items: flex-start; }
-  .controls { flex: 1 1 260px; min-width: 260px; }
-  .wheel { flex: 1 1 460px; min-width: 320px; text-align: center; }
-  label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 4px; }
-  input[type="text"] {
-    width: 100%; padding: 8px 10px; font-size: 15px;
-    border: 1px solid var(--line); border-radius: 8px; background: var(--card);
-  }
-  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px;
-         padding: 8px 0; border-bottom: 1px solid var(--line); }
-  .row .name { font-size: 13px; max-width: 70%; }
-  .seg { display: flex; gap: 6px; }
-  .seg button {
-    width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--line);
-    background: var(--card); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted);
-  }
-  .seg button.active { color: #fff; border-color: transparent; }
-  figcaption { margin-top: 14px; font-size: 14px; color: var(--muted); }
-  figcaption strong { color: var(--ink); }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
-            margin-top: 18px; font-size: 12px; color: var(--muted); }
-  .legend span { display: inline-flex; align-items: center; gap: 5px; }
-  .dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
-  svg text { font-family: inherit; }
 </style>
 </head>
 <body>
@@ -58,15 +70,39 @@
   <h1>Health Metric Wheel</h1>
   <p class="sub">Easy Languages team health — 7 categories, scored 1–4. Strong reads green, weak reads red.</p>
 
+  <div class="toolbar">
+    <div class="group">
+      <label for="teamSel" style="font-size:13px;font-weight:600;">Team</label>
+      <select id="teamSel"></select>
+      <button class="btn" id="newTeam">+ New</button>
+      <button class="btn ghost" id="renameTeam">Rename</button>
+      <button class="btn ghost" id="delTeam">Delete</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="group">
+      <button class="btn" id="pngBtn">Download PNG</button>
+      <button class="btn" id="pdfBtn">Save as PDF</button>
+      <button class="btn ghost" id="backupBtn">Download backup</button>
+      <button class="btn ghost" id="restoreBtn">Load backup</button>
+      <input type="file" id="fileIn" accept="application/json" style="display:none" />
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button data-v="wheel" class="active">Filled wheel</button>
+    <button data-v="hub">Hub &amp; spokes</button>
+    <button data-v="radar">Cleaner radar</button>
+    <button data-v="bars">Horizontal bars</button>
+  </div>
+  <div class="blurb" id="blurb"></div>
+
   <div class="layout">
     <div class="controls">
-      <label for="team">Team</label>
-      <input type="text" id="team" placeholder="e.g. Easy Portuguese" value="Easy Portuguese" />
       <div id="rows"></div>
+      <p class="hint" id="hint"></p>
     </div>
-
-    <figure class="wheel" style="margin:0;">
-      <svg id="chart" viewBox="-110 0 740 540" width="100%" style="max-width:680px;"></svg>
+    <figure class="stage" style="margin:0;">
+      <div id="canvas"></div>
       <figcaption id="caption"></figcaption>
       <div class="legend" id="legend"></div>
     </figure>
@@ -74,141 +110,227 @@
 </div>
 
 <script>
-// ----- CONFIG: edit categories + scale here, no rebuild needed -----
+// ---- CONFIG: edit categories + scale here, no rebuild needed ----
 const CONFIG = {
   categories: [
-    "Content Quality",
-    "Audience Connection",
-    "Learner Understanding & Educational Value",
-    "Audience Growth",
-    "Business Model & Monetization",
-    "Strategic Focus",
-    "Team Health & Leadership",
+    "Content Quality","Audience Connection","Learner Understanding & Educational Value",
+    "Audience Growth","Business Model & Monetization","Strategic Focus","Team Health & Leadership",
   ],
   scale: {
-    1: { label: "Needs Attention", color: "#e5484d" },
-    2: { label: "Developing",      color: "#f5a524" },
-    3: { label: "Strong",          color: "#9bb83a" },
-    4: { label: "Excellent",       color: "#3a9b5c" },
+    1:{label:"Needs Attention",color:"#e5484d"},
+    2:{label:"Developing",color:"#f5a524"},
+    3:{label:"Strong",color:"#9bb83a"},
+    4:{label:"Excellent",color:"#3a9b5c"},
   },
 };
-// -------------------------------------------------------------------
+const BLURBS = {
+  wheel:"Seven equal slices, each filled from the center out to its score. Fuller + greener = healthier. Reads as one shape.",
+  hub:"The classic Lifeplan layout. Team in the middle, each category a labeled bubble on a tick-marked spoke, score marked along the line.",
+  radar:"One soft shape over seven axes, with a colored dot per score. Shows the team's 'shape' at a glance.",
+  bars:"Most legible, zero learning curve. Length + color = score.",
+};
+// -----------------------------------------------------------------
 
-const MIN = 1, MAX = 4;
-const N = CONFIG.categories.length;
-const scores = CONFIG.categories.map(() => 3); // sensible default
+const MIN=1, MAX=4, N=CONFIG.categories.length;
+const STORE_KEY="hmw.v1";
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-const SIZE = 520, CENTER = SIZE / 2, MAXR = 168;
-
-function colorFor(score) {
-  return (CONFIG.scale[Math.round(score)] || CONFIG.scale[MAX]).color;
+// ---------- persistence ----------
+function uid(){ return "t"+Math.floor(performance.now()*1000).toString(36)+Math.floor(performance.now()).toString(36); }
+function seed(){ return { teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
+function load(){
+  let s; try { s=JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e){ s=null; }
+  if(!s || !s.teams || !s.teams.length) s=seed();
+  if(!s.activeId || !s.teams.find(t=>t.id===s.activeId)) s.activeId=s.teams[0].id;
+  // normalise score length to N
+  s.teams.forEach(t=>{ while(t.scores.length<N) t.scores.push(3); t.scores=t.scores.slice(0,N); if(!t.view) t.view="wheel"; });
+  return s;
 }
-function angleFor(i) { return (-90 + i * (360 / N)) * Math.PI / 180; }
-function radiusFor(score) {
-  // map MIN..MAX onto a small inner radius..MAXR (so a 1 is still visible)
-  const inner = MAXR * 0.18;
-  return inner + (score - MIN) / (MAX - MIN) * (MAXR - inner);
-}
-function pt(angle, r) { return [CENTER + r * Math.cos(angle), CENTER + r * Math.sin(angle)]; }
-function el(name, attrs, text) {
-  const e = document.createElementNS(SVG_NS, name);
-  for (const k in attrs) e.setAttribute(k, attrs[k]);
-  if (text != null) e.textContent = text;
-  return e;
+function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+let store=load();
+const active=()=>store.teams.find(t=>t.id===store.activeId);
+let scores=active().scores;
+let variant=active().view;
+
+// ---------- geometry helpers ----------
+const NS="http://www.w3.org/2000/svg";
+const SIZE=520,C=SIZE/2,MAXR=160;
+const colorFor=s=>(CONFIG.scale[Math.round(s)]||CONFIG.scale[MAX]).color;
+const angleFor=i=>(-90+i*(360/N))*Math.PI/180;
+const radiusFor=s=>{const inner=MAXR*0.16;return inner+(s-MIN)/(MAX-MIN)*(MAXR-inner);};
+const pt=(a,r)=>[C+r*Math.cos(a),C+r*Math.sin(a)];
+function el(n,a,t){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;return e;}
+function svgEl(){const s=document.createElementNS(NS,"svg");s.setAttribute("viewBox","-110 0 740 540");s.setAttribute("width","100%");s.style.maxWidth="660px";return s;}
+function labelAt(svg,i,extra){
+  const a=angleFor(i);const [lx,ly]=pt(a,MAXR+22+(extra||0));
+  const anchor=Math.abs(lx-C)<6?"middle":(lx<C?"end":"start");
+  const words=CONFIG.categories[i].split(" ");
+  const lines=words.length>2?[words.slice(0,Math.ceil(words.length/2)).join(" "),words.slice(Math.ceil(words.length/2)).join(" ")]:[CONFIG.categories[i]];
+  const t=el("text",{x:lx,y:ly-(lines.length-1)*6,"text-anchor":anchor,"font-size":11,fill:"#555","font-weight":600});
+  lines.forEach((ln,k)=>t.appendChild(el("tspan",{x:lx,dy:k===0?0:13},ln)));
+  svg.appendChild(t);
 }
 
-function drawChart() {
-  const svg = document.getElementById("chart");
-  svg.innerHTML = "";
-  const sliceHalf = Math.PI / N;
-
-  // grid rings
-  for (let s = MIN; s <= MAX; s++) {
-    const r = radiusFor(s);
-    const ring = [];
-    for (let i = 0; i < N; i++) { const [x, y] = pt(angleFor(i) - sliceHalf, r); ring.push(`${x},${y}`); }
-    svg.appendChild(el("polygon", { points: ring.join(" "), fill: "none", stroke: "#ece9e4", "stroke-width": 1 }));
+// ---------- renderers ----------
+function renderWheel(){
+  const svg=svgEl();const half=Math.PI/N;
+  for(let s=MIN;s<=MAX;s++){svg.appendChild(el("circle",{cx:C,cy:C,r:radiusFor(s),fill:"none",stroke:"#ece9e4","stroke-width":1}));}
+  for(let i=0;i<N;i++){
+    const a0=angleFor(i)-half,a1=angleFor(i)+half,r=radiusFor(scores[i]);
+    const [x0,y0]=pt(a0,r),[x1,y1]=pt(a1,r);
+    svg.appendChild(el("path",{d:`M ${C} ${C} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z`,fill:colorFor(scores[i]),"fill-opacity":0.78,stroke:"#fff","stroke-width":1.5}));
+    labelAt(svg,i);
   }
-
-  // colored wedges (one per category, radius + color by score)
-  for (let i = 0; i < N; i++) {
-    const a0 = angleFor(i) - sliceHalf, a1 = angleFor(i) + sliceHalf;
-    const r = radiusFor(scores[i]);
-    const [x0, y0] = pt(a0, r), [x1, y1] = pt(a1, r);
-    const d = `M ${CENTER} ${CENTER} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z`;
-    svg.appendChild(el("path", { d, fill: colorFor(scores[i]), "fill-opacity": 0.62, stroke: "#fff", "stroke-width": 1 }));
-  }
-
-  // axis lines + labels
-  for (let i = 0; i < N; i++) {
-    const a = angleFor(i);
-    const [ax, ay] = pt(a, MAXR);
-    svg.appendChild(el("line", { x1: CENTER, y1: CENTER, x2: ax, y2: ay, stroke: "#ddd8d1", "stroke-width": 1 }));
-    const [lx, ly] = pt(a, MAXR + 22);
-    const anchor = Math.abs(lx - CENTER) < 6 ? "middle" : (lx < CENTER ? "end" : "start");
-    const words = CONFIG.categories[i].split(" ");
-    // wrap long labels onto up to 2 lines
-    const lines = words.length > 2 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : [CONFIG.categories[i]];
-    const t = el("text", { x: lx, y: ly - (lines.length - 1) * 6, "text-anchor": anchor, "font-size": 11, fill: "#555", "font-weight": 600 });
-    lines.forEach((ln, k) => t.appendChild(el("tspan", { x: lx, dy: k === 0 ? 0 : 13 }, ln)));
-    svg.appendChild(t);
-    // score pill near label
-    const [sx, sy] = pt(a, MAXR + 2);
-    svg.appendChild(el("circle", { cx: sx, cy: sy, r: 9, fill: colorFor(scores[i]) }));
-    svg.appendChild(el("text", { x: sx, y: sy + 3.5, "text-anchor": "middle", "font-size": 10, fill: "#fff", "font-weight": 700 }, scores[i]));
-  }
-
-  // score polygon outline (the shape)
-  const poly = [];
-  for (let i = 0; i < N; i++) { const [x, y] = pt(angleFor(i), radiusFor(scores[i])); poly.push(`${x},${y}`); }
-  svg.appendChild(el("polygon", { points: poly.join(" "), fill: "none", stroke: "#3a3a3a", "stroke-width": 1.6, "stroke-opacity": 0.55 }));
+  return svg;
 }
-
-function drawCaption() {
-  const team = document.getElementById("team").value.trim() || "—";
-  const avg = (scores.reduce((a, b) => a + b, 0) / N).toFixed(1);
-  document.getElementById("caption").innerHTML = `<strong>${team}</strong> · average ${avg} / ${MAX}`;
-}
-
-function drawLegend() {
-  const wrap = document.getElementById("legend");
-  wrap.innerHTML = "";
-  for (let s = MIN; s <= MAX; s++) {
-    const sp = document.createElement("span");
-    sp.innerHTML = `<span class="dot" style="background:${CONFIG.scale[s].color}"></span>${s} · ${CONFIG.scale[s].label}`;
-    wrap.appendChild(sp);
-  }
-}
-
-function buildRows() {
-  const wrap = document.getElementById("rows");
-  wrap.innerHTML = "";
-  CONFIG.categories.forEach((cat, i) => {
-    const row = document.createElement("div");
-    row.className = "row";
-    const name = document.createElement("div");
-    name.className = "name";
-    name.textContent = cat;
-    const seg = document.createElement("div");
-    seg.className = "seg";
-    for (let s = MIN; s <= MAX; s++) {
-      const b = document.createElement("button");
-      b.textContent = s;
-      if (scores[i] === s) { b.classList.add("active"); b.style.background = CONFIG.scale[s].color; }
-      b.addEventListener("click", () => { scores[i] = s; buildRows(); render(); });
-      seg.appendChild(b);
+function renderHub(){
+  const svg=svgEl();const rInner=58,rOuter=152,rBubble=196;
+  const rH=s=>rInner+(s-MIN)/(MAX-MIN)*(rOuter-rInner);
+  const team=active().name||"Team";
+  for(let i=0;i<N;i++){
+    const a=angleFor(i);
+    const [sx,sy]=pt(a,rInner-6),[ex,ey]=pt(a,rOuter+4);
+    svg.appendChild(el("line",{x1:sx,y1:sy,x2:ex,y2:ey,stroke:"#bdbab4","stroke-width":1.4}));
+    const perp=a+Math.PI/2;
+    for(let s=MIN;s<=MAX;s++){const r=rH(s);const[cx,cy]=pt(a,r);
+      svg.appendChild(el("line",{x1:cx+5*Math.cos(perp),y1:cy+5*Math.sin(perp),x2:cx-5*Math.cos(perp),y2:cy-5*Math.sin(perp),stroke:"#cbc8c2","stroke-width":1.2}));
+      if(i===0)svg.appendChild(el("text",{x:cx+11,y:cy+3.5,"font-size":9,fill:"#aaa"},s));
     }
-    row.appendChild(name); row.appendChild(seg);
-    wrap.appendChild(row);
+    const[mx,my]=pt(a,rH(scores[i]));
+    svg.appendChild(el("circle",{cx:mx,cy:my,r:6.5,fill:colorFor(scores[i]),stroke:"#fff","stroke-width":1.5}));
+    const[bx,by]=pt(a,rBubble);
+    svg.appendChild(el("ellipse",{cx:bx,cy:by,rx:60,ry:27,fill:"#fff",stroke:colorFor(scores[i]),"stroke-width":1.6}));
+    const words=CONFIG.categories[i].split(" ");const lines=[];let cur="";
+    words.forEach(w=>{if((cur+" "+w).trim().length>14){lines.push(cur.trim());cur=w;}else cur=(cur+" "+w).trim();});
+    if(cur)lines.push(cur);
+    const t=el("text",{x:bx,y:by-(Math.min(lines.length,3)-1)*5,"text-anchor":"middle","font-size":9.5,fill:"#444","font-weight":600});
+    lines.slice(0,3).forEach((ln,k)=>t.appendChild(el("tspan",{x:bx,dy:k===0?0:11},ln)));
+    svg.appendChild(t);
+  }
+  svg.appendChild(el("ellipse",{cx:C,cy:C,rx:50,ry:36,fill:"#fbfaf8",stroke:"#9a9690","stroke-width":1.6}));
+  const tl=team.split(" ");const hl=tl.length>1?[tl[0],tl.slice(1).join(" ")]:[team];
+  const ht=el("text",{x:C,y:C-(hl.length-1)*6+3,"text-anchor":"middle","font-size":12,fill:"#333","font-weight":650});
+  hl.forEach((ln,k)=>ht.appendChild(el("tspan",{x:C,dy:k===0?0:14},ln)));
+  svg.appendChild(ht);
+  return svg;
+}
+function renderRadar(){
+  const svg=svgEl();const accent="#5b6b7a";
+  for(let s=MIN;s<=MAX;s++){const ring=[];for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),radiusFor(s));ring.push(`${x},${y}`);}svg.appendChild(el("polygon",{points:ring.join(" "),fill:"none",stroke:"#ece9e4","stroke-width":1}));}
+  for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),MAXR);svg.appendChild(el("line",{x1:C,y1:C,x2:x,y2:y,stroke:"#eceae5","stroke-width":1}));}
+  const poly=[];for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),radiusFor(scores[i]));poly.push(`${x},${y}`);}
+  svg.appendChild(el("polygon",{points:poly.join(" "),fill:accent,"fill-opacity":0.12,stroke:accent,"stroke-width":2}));
+  for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),radiusFor(scores[i]));
+    svg.appendChild(el("circle",{cx:x,cy:y,r:7,fill:colorFor(scores[i]),stroke:"#fff","stroke-width":1.5}));labelAt(svg,i);}
+  return svg;
+}
+function renderBars(){
+  const box=document.createElement("div");box.className="bars";
+  CONFIG.categories.forEach((cat,i)=>{
+    const r=document.createElement("div");r.className="bar-row";
+    const pct=((scores[i]-MIN)/(MAX-MIN))*88+12;
+    r.innerHTML=`<div class="lab"><b>${cat}</b><span style="color:${colorFor(scores[i])};font-weight:700;">${scores[i]} · ${CONFIG.scale[scores[i]].label}</span></div>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${colorFor(scores[i])}"></div></div>`;
+    box.appendChild(r);
   });
+  return box;
 }
 
-function render() { drawChart(); drawCaption(); drawLegend(); }
+// ---------- view assembly ----------
+function render(){
+  const canvas=document.getElementById("canvas");canvas.innerHTML="";
+  if(variant==="wheel")canvas.appendChild(renderWheel());
+  else if(variant==="hub")canvas.appendChild(renderHub());
+  else if(variant==="radar")canvas.appendChild(renderRadar());
+  else canvas.appendChild(renderBars());
+  document.getElementById("blurb").textContent=BLURBS[variant];
+  caption();legend();
+}
+function caption(){const avg=(scores.reduce((a,b)=>a+b,0)/N).toFixed(1);document.getElementById("caption").innerHTML=`<strong>${active().name}</strong> · average ${avg} / ${MAX}`;}
+function legend(){const w=document.getElementById("legend");w.innerHTML="";for(let s=MIN;s<=MAX;s++){const sp=document.createElement("span");sp.innerHTML=`<span class="dot" style="background:${CONFIG.scale[s].color}"></span>${s} · ${CONFIG.scale[s].label}`;w.appendChild(sp);}}
+function buildRows(){const wrap=document.getElementById("rows");wrap.innerHTML="";
+  CONFIG.categories.forEach((cat,i)=>{const row=document.createElement("div");row.className="row";
+    const name=document.createElement("div");name.className="name";name.textContent=cat;
+    const seg=document.createElement("div");seg.className="seg";
+    for(let s=MIN;s<=MAX;s++){const b=document.createElement("button");b.textContent=s;
+      if(scores[i]===s){b.classList.add("active");b.style.background=CONFIG.scale[s].color;}
+      b.addEventListener("click",()=>{scores[i]=s;active().scores=scores;persist();buildRows();render();});seg.appendChild(b);}
+    row.appendChild(name);row.appendChild(seg);wrap.appendChild(row);});
+}
+function buildTeamSel(){const sel=document.getElementById("teamSel");sel.innerHTML="";
+  store.teams.forEach(t=>{const o=document.createElement("option");o.value=t.id;o.textContent=t.name;if(t.id===store.activeId)o.selected=true;sel.appendChild(o);});
+}
+function switchTeam(id){store.activeId=id;persist();scores=active().scores;variant=active().view||"wheel";
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
+  buildTeamSel();buildRows();render();}
 
-document.getElementById("team").addEventListener("input", drawCaption);
-buildRows();
-render();
+// ---------- team actions ----------
+document.getElementById("teamSel").addEventListener("change",e=>switchTeam(e.target.value));
+document.getElementById("newTeam").addEventListener("click",()=>{
+  const name=prompt("New team name:","Team "+(store.teams.length+1));if(!name)return;
+  const t={id:uid(),name:name.trim(),scores:Array(N).fill(3),view:variant};store.teams.push(t);switchTeam(t.id);});
+document.getElementById("renameTeam").addEventListener("click",()=>{
+  const name=prompt("Rename team:",active().name);if(!name)return;active().name=name.trim();persist();buildTeamSel();caption();render();});
+document.getElementById("delTeam").addEventListener("click",()=>{
+  if(store.teams.length<=1){alert("Keep at least one team.");return;}
+  if(!confirm(`Delete "${active().name}"? This can't be undone.`))return;
+  store.teams=store.teams.filter(t=>t.id!==store.activeId);store.activeId=store.teams[0].id;persist();switchTeam(store.activeId);});
+
+// ---------- tabs ----------
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");variant=b.dataset.v;active().view=variant;persist();render();}));
+
+// ---------- export ----------
+function safeName(s){return (s||"team").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase();}
+function downloadBlob(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+document.getElementById("pngBtn").addEventListener("click",()=>{
+  const svg=document.querySelector("#canvas svg");
+  if(!svg){alert("PNG export works on the chart views (wheel, hub, radar). For the bars view, use Save as PDF.");return;}
+  const vb=svg.getAttribute("viewBox").split(" ").map(Number);const W=vb[2],H=vb[3],headerH=64,scale=2;
+  const clone=svg.cloneNode(true);clone.setAttribute("width",W);clone.setAttribute("height",H);
+  const xml=new XMLSerializer().serializeToString(clone);
+  const src="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(xml)));
+  const img=new Image();
+  img.onload=()=>{
+    const canvas=document.createElement("canvas");canvas.width=W*scale;canvas.height=(H+headerH)*scale;
+    const ctx=canvas.getContext("2d");ctx.scale(scale,scale);
+    ctx.fillStyle="#ffffff";ctx.fillRect(0,0,W,H+headerH);
+    const avg=(scores.reduce((a,b)=>a+b,0)/N).toFixed(1);
+    ctx.fillStyle="#2b2b2b";ctx.textAlign="center";ctx.font="650 22px -apple-system,Helvetica,Arial,sans-serif";
+    ctx.fillText(active().name,W/2,38);
+    ctx.fillStyle="#777";ctx.font="14px -apple-system,Helvetica,Arial,sans-serif";
+    ctx.fillText("average "+avg+" / "+MAX,W/2,58);
+    ctx.drawImage(img,0,headerH,W,H);
+    canvas.toBlob(b=>downloadBlob(b,safeName(active().name)+"-"+variant+".png"),"image/png");
+  };
+  img.onerror=()=>alert("Couldn't render the PNG. Try Save as PDF instead.");
+  img.src=src;
+});
+document.getElementById("pdfBtn").addEventListener("click",()=>window.print());
+
+// ---------- backup ----------
+document.getElementById("backupBtn").addEventListener("click",()=>{
+  downloadBlob(new Blob([JSON.stringify(store,null,2)],{type:"application/json"}),"health-wheel-backup.json");});
+document.getElementById("restoreBtn").addEventListener("click",()=>document.getElementById("fileIn").click());
+document.getElementById("fileIn").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;const reader=new FileReader();
+  reader.onload=()=>{try{const data=JSON.parse(reader.result);
+      if(!data.teams||!data.teams.length)throw 0;
+      if(!confirm("Load this backup? It replaces the teams currently saved in this browser."))return;
+      store=data;store.activeId=store.teams[0].id;
+      store.teams.forEach(t=>{while(t.scores.length<N)t.scores.push(3);t.scores=t.scores.slice(0,N);if(!t.view)t.view="wheel";});
+      persist();scores=active().scores;variant=active().view;
+      document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
+      buildTeamSel();buildRows();render();
+    }catch(err){alert("That doesn't look like a valid backup file.");}
+    e.target.value="";};
+  reader.readAsText(f);});
+
+// ---------- boot ----------
+persist();
+document.getElementById("hint").textContent="Teams are saved in this browser. Use Download backup to keep a copy you can move or restore.";
+document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
+buildTeamSel();buildRows();render();
 </script>
 </body>
 </html>
