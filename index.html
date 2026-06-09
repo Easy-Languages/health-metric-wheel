@@ -197,8 +197,11 @@ function renderWheel(){
   return svg;
 }
 function renderHub(){
-  const svg=svgEl();const rInner=58,rOuter=152,rBubble=196;
+  const svg=svgEl();const rInner=58,rOuter=152,rxB=60,ryB=27,bubbleGap=18;
   const rH=s=>rInner+(s-MIN)/(MAX-MIN)*(rOuter-rInner);
+  // distance from an axis-aligned ellipse's centre to its edge along direction `a`;
+  // used so every bubble's inner edge sits the same gap from the spoke, not its centre.
+  const ellipseReach=a=>(rxB*ryB)/Math.sqrt(Math.pow(ryB*Math.cos(a),2)+Math.pow(rxB*Math.sin(a),2));
   const team=active().name||"Team";
   for(let i=0;i<N;i++){
     const a=angleFor(i);
@@ -211,8 +214,8 @@ function renderHub(){
     }
     const[mx,my]=pt(a,rH(scores[i]));
     svg.appendChild(el("circle",{cx:mx,cy:my,r:6.5,fill:colorFor(scores[i]),stroke:"#fff","stroke-width":1.5}));
-    const[bx,by]=pt(a,rBubble);
-    svg.appendChild(el("ellipse",{cx:bx,cy:by,rx:60,ry:27,fill:"#fff",stroke:colorFor(scores[i]),"stroke-width":1.6}));
+    const[bx,by]=pt(a,rOuter+bubbleGap+ellipseReach(a));
+    svg.appendChild(el("ellipse",{cx:bx,cy:by,rx:rxB,ry:ryB,fill:"#fff",stroke:colorFor(scores[i]),"stroke-width":1.6}));
     const words=CONFIG.categories[i].split(" ");const lines=[];let cur="";
     words.forEach(w=>{if((cur+" "+w).trim().length>14){lines.push(cur.trim());cur=w;}else cur=(cur+" "+w).trim();});
     if(cur)lines.push(cur);
