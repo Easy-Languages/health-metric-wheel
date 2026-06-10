@@ -151,19 +151,36 @@ const SAFE={
 };
 function uid(){ return "t"+Math.floor(performance.now()*1000).toString(36)+Math.floor(performance.now()).toString(36); }
 function seed(){ return { teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
-function load(){
-  let s; try { s=JSON.parse(SAFE.get()); } catch(e){ s=null; }
+function normalise(s){
   if(!s || !s.teams || !s.teams.length) s=seed();
   if(!s.activeId || !s.teams.find(t=>t.id===s.activeId)) s.activeId=s.teams[0].id;
-  // normalise score length to N
   s.teams.forEach(t=>{ while(t.scores.length<N) t.scores.push(3); t.scores=t.scores.slice(0,N); if(!t.view) t.view="wheel"; });
   return s;
 }
-function persist(){ SAFE.set(JSON.stringify(store)); }
-let store=load();
+function load(){ let s; try { s=JSON.parse(SAFE.get()); } catch(e){ s=null; } return normalise(s); }
+
+// Shared backend (optional). If /api/data is live, the tool reads/writes one shared
+// store so everyone with the link sees the same teams; editing needs the team password.
+// If the API isn't there, it falls back to per-browser localStorage (unchanged).
+let backend=false;
+let editPassword=(()=>{ try { return sessionStorage.getItem("hmw.pw"); } catch(e){ return null; } })();
+function persistLocal(){ SAFE.set(JSON.stringify(store)); }      // local cache / navigation state
+function persist(){ persistLocal(); if(backend) serverSave(); }  // a real data edit
+async function serverSave(){
+  if(!editPassword){
+    editPassword=prompt("Enter the team password to save changes to the shared wheel:");
+    if(!editPassword) return;                                    // cancelled — keep local copy, don't nag
+    try { sessionStorage.setItem("hmw.pw", editPassword); } catch(e){}
+  }
+  try{
+    const r=await fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:editPassword,store})});
+    if(r.status===401){ editPassword=null; try{ sessionStorage.removeItem("hmw.pw"); }catch(e){} alert("That password wasn't right. Your change is saved on this device; edit again to re-enter it."); }
+    else if(!r.ok){ alert("Couldn't save to the shared store just now. Your change is kept on this device — use Download backup if it matters."); }
+  }catch(e){ alert("Couldn't reach the shared store. Your change is kept on this device."); }
+}
+
+let store=null, scores=[], variant="wheel";
 const active=()=>store.teams.find(t=>t.id===store.activeId);
-let scores=active().scores;
-let variant=active().view;
 
 // ---------- geometry helpers ----------
 const NS="http://www.w3.org/2000/svg";
@@ -280,26 +297,29 @@ function buildScaleKey(){const k=document.getElementById("scaleKey");
 function buildTeamSel(){const sel=document.getElementById("teamSel");sel.innerHTML="";
   store.teams.forEach(t=>{const o=document.createElement("option");o.value=t.id;o.textContent=t.name;if(t.id===store.activeId)o.selected=true;sel.appendChild(o);});
 }
-function switchTeam(id){store.activeId=id;persist();scores=active().scores;variant=active().view||"wheel";
+// Re-point the UI at the current active team. Pure view update — no save.
+function applyActive(){scores=active().scores;variant=active().view||"wheel";
   document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
   buildTeamSel();buildRows();render();}
 
 // ---------- team actions ----------
-document.getElementById("teamSel").addEventListener("change",e=>switchTeam(e.target.value));
+// Switching team / view is navigation -> persistLocal (no password). Changing
+// scores or adding/renaming/deleting a team is a data edit -> persist (saves to the shared store).
+document.getElementById("teamSel").addEventListener("change",e=>{store.activeId=e.target.value;persistLocal();applyActive();});
 document.getElementById("newTeam").addEventListener("click",()=>{
   const name=prompt("New team name:","Team "+(store.teams.length+1));if(!name)return;
-  const t={id:uid(),name:name.trim(),scores:Array(N).fill(3),view:variant};store.teams.push(t);switchTeam(t.id);});
+  const t={id:uid(),name:name.trim(),scores:Array(N).fill(3),view:variant};store.teams.push(t);store.activeId=t.id;persist();applyActive();});
 document.getElementById("renameTeam").addEventListener("click",()=>{
   const name=prompt("Rename team:",active().name);if(!name)return;active().name=name.trim();persist();buildTeamSel();caption();render();});
 document.getElementById("delTeam").addEventListener("click",()=>{
   if(store.teams.length<=1){alert("Keep at least one team.");return;}
   if(!confirm(`Delete "${active().name}"? This can't be undone.`))return;
-  store.teams=store.teams.filter(t=>t.id!==store.activeId);store.activeId=store.teams[0].id;persist();switchTeam(store.activeId);});
+  store.teams=store.teams.filter(t=>t.id!==store.activeId);store.activeId=store.teams[0].id;persist();applyActive();});
 
 // ---------- tabs ----------
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");variant=b.dataset.v;active().view=variant;persist();render();}));
+  b.classList.add("active");variant=b.dataset.v;active().view=variant;persistLocal();render();}));
 
 // ---------- export ----------
 function safeName(s){return (s||"team").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase();}
@@ -337,23 +357,28 @@ document.getElementById("fileIn").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;const reader=new FileReader();
   reader.onload=()=>{try{const data=JSON.parse(reader.result);
       if(!data.teams||!data.teams.length)throw 0;
-      if(!confirm("Load this backup? It replaces the teams currently saved in this browser."))return;
-      store=data;store.activeId=store.teams[0].id;
-      store.teams.forEach(t=>{while(t.scores.length<N)t.scores.push(3);t.scores=t.scores.slice(0,N);if(!t.view)t.view="wheel";});
-      persist();scores=active().scores;variant=active().view;
-      document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
-      buildTeamSel();buildRows();render();
+      if(!confirm(backend?"Load this backup? It replaces the shared teams for everyone.":"Load this backup? It replaces the teams saved in this browser."))return;
+      store=normalise(data);
+      persist();applyActive();
     }catch(err){alert("That doesn't look like a valid backup file.");}
     e.target.value="";};
   reader.readAsText(f);});
 
 // ---------- boot ----------
-persist();
-document.getElementById("hint").textContent = storageOK
-  ? "Teams are saved in this browser. Use Download backup to keep a copy you can move or restore."
-  : "Heads up: this browser is blocking local save (common when opening the file directly), so teams won't survive a reload. Use Download backup to keep your data, or serve the folder over http.";
-document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
-buildScaleKey();buildTeamSel();buildRows();render();
+function setHint(){const h=document.getElementById("hint");
+  if(backend) h.textContent="Saved to the shared store — everyone with the link sees the same teams. Editing asks for the team password.";
+  else if(storageOK) h.textContent="Teams are saved in this browser. Use Download backup to keep a copy you can move or restore.";
+  else h.textContent="Heads up: this browser is blocking local save, so teams won't survive a reload. Use Download backup to keep your data.";}
+async function boot(){
+  let serverStore=null;
+  try{ const r=await fetch("/api/data"); if(r.ok){ const j=await r.json(); backend=true; serverStore=j.store; } }catch(e){}
+  store = backend ? normalise(serverStore) : load();
+  scores=active().scores; variant=active().view;
+  setHint();
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
+  buildScaleKey();buildTeamSel();buildRows();render();
+}
+boot();
 </script>
 </body>
 </html>
