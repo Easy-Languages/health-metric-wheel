@@ -401,6 +401,9 @@ document.getElementById("addCat").addEventListener("click",()=>{
 document.getElementById("catSave").addEventListener("click",()=>{
   const clean=catDraft.filter(d=>d.name.trim());
   if(clean.length<3){document.getElementById("catWarn").textContent="Keep at least 3 categories.";return;}
+  const kept=new Set(clean.filter(d=>d.from!=null).map(d=>d.from));
+  const deleted=store.categories.filter((name,idx)=>!kept.has(idx));
+  if(deleted.length && !confirm(`Delete ${deleted.length} categor${deleted.length>1?"ies":"y"}: "${deleted.join('", "')}"?\n\nThis removes ${deleted.length>1?"their":"its"} scores from every team and can't be undone.`)) return;
   store.categories=clean.map(d=>d.name.trim());
   store.teams.forEach(t=>{const old=t.scores;t.scores=clean.map(d=> d.from!=null && d.from<old.length ? old[d.from] : 3);});
   syncCats();
