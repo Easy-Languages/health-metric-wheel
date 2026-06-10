@@ -49,3 +49,4 @@ const CONFIG = {
 ## Scope (v1)
 7 scores in → one color-coded wheel out, screenshot-able for reviews. Parked for later:
 per-category notes, two-cycle comparison, multi-team storage, export button, weighting.
+
