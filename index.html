@@ -77,6 +77,13 @@
   .cat-row .del { flex:0 0 auto; width:30px; height:30px; border:1px solid var(--line); background:var(--card);
                   border-radius:7px; cursor:pointer; color:#c0392b; font-size:15px; line-height:1; }
   .cat-row .del:hover { background:#fdecec; border-color:#f0c2c2; }
+  .cat-row .grip { flex:0 0 auto; width:24px; height:30px; display:flex; align-items:center; justify-content:center;
+                   cursor:grab; color:#c2bfb8; font-size:15px; line-height:1; border-radius:7px;
+                   touch-action:none; user-select:none; }
+  .cat-row .grip:hover { color:#8a8780; background:#f4f2ee; }
+  .cat-row.dragging { background:#fbf8f3; box-shadow:0 7px 20px rgba(0,0,0,.16); position:relative; z-index:2; }
+  .cat-row.dragging .grip { cursor:grabbing; }
+  body.dragging-active { user-select:none; cursor:grabbing; }
   .modal-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:16px; }
   .addcat { padding:7px 12px; border:1px dashed var(--line); background:var(--card); border-radius:8px;
             cursor:pointer; font-size:13px; font-weight:600; color:var(--muted); width:100%; margin-top:4px; }
@@ -141,7 +148,7 @@
 <div class="modal-bg" id="catModal">
   <div class="modal">
     <h2>Edit categories</h2>
-    <p class="note">These apply to every team. Renaming is safe. Deleting a category removes its scores from all teams. New categories start every team at 3 (Strong) — adjust after.</p>
+    <p class="note">These apply to every team. Drag the ⠿ handle to reorder. Renaming is safe. Deleting a category removes its scores from all teams. New categories start every team at 3 (Strong) — adjust after.</p>
     <div id="catList"></div>
     <button class="addcat" id="addCat">+ Add category</button>
     <div class="modal-actions">
@@ -372,16 +379,52 @@ document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",
 // draft; each row remembers its origin index ("from") so that on Save we can realign every
 // team's scores: renamed keeps its score, new starts at 3, deleted drops out.
 let catDraft=[];
+let dragIdx=null;   // index in catDraft of the row being dragged (null when idle)
 function renderCatRows(){
   const list=document.getElementById("catList");list.innerHTML="";
   catDraft.forEach((d,i)=>{
     const row=document.createElement("div");row.className="cat-row";
+    if(i===dragIdx)row.classList.add("dragging");
+    const grip=document.createElement("div");grip.className="grip";grip.textContent="⠿";grip.title="Drag to reorder";
+    grip.addEventListener("pointerdown",e=>startDrag(e,i));
     const inp=document.createElement("input");inp.type="text";inp.value=d.name;
     inp.addEventListener("input",()=>{catDraft[i].name=inp.value;});
     const del=document.createElement("button");del.className="del";del.textContent="×";del.title="Delete category";
     del.addEventListener("click",()=>{catDraft.splice(i,1);renderCatRows();});
-    row.appendChild(inp);row.appendChild(del);list.appendChild(row);
+    row.appendChild(grip);row.appendChild(inp);row.appendChild(del);list.appendChild(row);
   });
+}
+// Pointer-based reorder (not the native drag API, which is janky and dead on touch).
+// The dragged row stays highlighted in place; the rest reorder live under the pointer.
+// Nothing commits until Save — catDraft order *is* the order, and `from` carries scores.
+function startDrag(e,i){
+  e.preventDefault();
+  dragIdx=i;
+  document.body.classList.add("dragging-active");
+  renderCatRows();
+  const move=ev=>{
+    const rows=[...document.getElementById("catList").children];
+    let target=catDraft.length-1;                       // default: past the last midpoint -> end
+    for(let k=0;k<rows.length;k++){
+      const r=rows[k].getBoundingClientRect();
+      if(ev.clientY < r.top+r.height/2){ target=k; break; }
+    }
+    if(target!==dragIdx){
+      const [item]=catDraft.splice(dragIdx,1);
+      catDraft.splice(target,0,item);
+      dragIdx=target;
+      renderCatRows();
+    }
+  };
+  const up=()=>{
+    dragIdx=null;
+    document.body.classList.remove("dragging-active");
+    document.removeEventListener("pointermove",move);
+    document.removeEventListener("pointerup",up);
+    renderCatRows();
+  };
+  document.addEventListener("pointermove",move);
+  document.addEventListener("pointerup",up);
 }
 function openCatEditor(){
   catDraft=store.categories.map((name,idx)=>({name,from:idx}));
