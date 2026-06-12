@@ -72,7 +72,8 @@
            max-height:84vh; overflow:auto; box-shadow:0 14px 44px rgba(0,0,0,.22); }
   .modal h2 { font-size:17px; margin:0 0 4px; }
   .modal .note { font-size:12.5px; color:var(--muted); margin:0 0 16px; }
-  .cat-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .cat-row { display:flex; align-items:center; gap:8px; margin-bottom:0; }
+  .cat-item { margin-bottom:8px; }
   .cat-row input { flex:1 1 auto; padding:8px 10px; font-size:14px; border:1px solid var(--line); border-radius:8px; }
   .cat-row .del { flex:0 0 auto; width:30px; height:30px; border:1px solid var(--line); background:var(--card);
                   border-radius:7px; cursor:pointer; color:#c0392b; font-size:15px; line-height:1; }
@@ -84,6 +85,26 @@
   .cat-row.dragging { background:#fbf8f3; box-shadow:0 7px 20px rgba(0,0,0,.16); position:relative; z-index:2; }
   .cat-row.dragging .grip { cursor:grabbing; }
   body.dragging-active { user-select:none; cursor:grabbing; }
+  .cat-row .dtoggle { flex:0 0 auto; width:30px; height:30px; border:1px solid var(--line); background:var(--card);
+                      border-radius:7px; cursor:pointer; color:#999; font-size:13px; font-weight:700; font-style:italic; line-height:1; }
+  .cat-row .dtoggle:hover { border-color:#cfccc6; color:#555; }
+  .cat-row .dtoggle.active { background:#efe9df; border-color:#cfc8ba; color:#555; }
+  .cat-desc { margin:6px 0 0 26px; padding:10px 12px; background:var(--bg); border:1px solid var(--line); border-radius:9px; }
+  .cat-desc .dlabel { margin-bottom:4px; }
+  .dfield { width:100%; padding:7px 9px; font-size:12.5px; border:1px solid var(--line); border-radius:7px;
+            font-family:inherit; color:var(--ink); background:#fff; resize:vertical; }
+
+  /* on-page category descriptions */
+  .row .name { display:flex; align-items:center; gap:6px; }
+  .info { flex:0 0 auto; width:18px; height:18px; border-radius:50%; border:1px solid #d8d5cf; background:#fff;
+          color:#999; font-size:11px; font-weight:700; font-style:italic; line-height:1; cursor:pointer; padding:0; }
+  .info:hover { border-color:#b8b4ad; color:#555; }
+  .catcell.open .info { background:#efe9df; border-color:#cfc8ba; color:#555; }
+  .descpanel { display:none; background:#f4f2ec; border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin:2px 0 8px; }
+  .catcell.open .descpanel { display:block; }
+  .dlabel { font-size:10px; font-weight:700; color:#8a8780; text-transform:uppercase; letter-spacing:.04em; margin:0 0 3px; }
+  .dq { font-size:12px; color:var(--ink); margin:0 0 9px; line-height:1.4; }
+  .dlook { font-size:12px; color:#666; line-height:1.4; }
   .modal-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:16px; }
   .addcat { padding:7px 12px; border:1px dashed var(--line); background:var(--card); border-radius:8px;
             cursor:pointer; font-size:13px; font-weight:600; color:var(--muted); width:100%; margin-top:4px; }
@@ -148,7 +169,7 @@
 <div class="modal-bg" id="catModal">
   <div class="modal">
     <h2>Edit categories</h2>
-    <p class="note">These apply to every team. Drag the ⠿ handle to reorder. Renaming is safe. Deleting a category removes its scores from all teams. New categories start every team at 3 (Strong) — adjust after.</p>
+    <p class="note">These apply to every team. Drag the ⠿ handle to reorder, the <i>i</i> to add a description (shown on the page behind the ⓘ). Renaming is safe. Deleting a category removes its scores from all teams. New categories start every team at 3 (Strong) — adjust after.</p>
     <div id="catList"></div>
     <button class="addcat" id="addCat">+ Add category</button>
     <div class="modal-actions">
@@ -168,6 +189,17 @@ const CONFIG = {
     "Content Quality","Audience Connection","Learner Understanding & Educational Value",
     "Audience Growth","Business Model & Monetization","Strategic Focus","Team Health & Leadership",
   ],
+  // Default descriptions, keyed by category name. Used to seed the editable copy in the
+  // store; once seeded, edits live in store.descriptions and these are just the fallback.
+  descriptions: {
+    "Content Quality":{q:"How consistently do we produce high-quality content that attracts and retains our audience?",look:"Production quality, regularity, systems, topic choices"},
+    "Audience Connection":{q:"How strongly do we build trust, loyalty, and emotional connection with our audience?",look:"Host authenticity, approachability, recognizability, community connection, likability, building trust with audience"},
+    "Learner Understanding & Educational Value":{q:"How well do we understand our learners and help them achieve meaningful learning outcomes?",look:"Does the team have a clear definition of their target audience? Which levels does the team produce for and what do they have to offer for each level? How do they position themselves in the market? Which learning goals are connected for each audience? Is there a natural product ladder? (beginner offers, intermediate offers, advanced offers)"},
+    "Audience Growth":{q:"How effectively do we attract new learners and grow our audience?",look:"YouTube growth, podcast growth, SEO, Newsletter/Emaillist growth, discoverability"},
+    "Business Model & Monetization":{q:"How effective is our business model at turning audience value into sustainable revenue?",look:"Product choices (Membership, Courses, Coaching), Ratio of free users vs. paid users, Pricing, How well does our portfolio of paid offers match the needs of our audience? Conversions"},
+    "Strategic Focus":{q:"How clear and focused is our strategy for growing the business?",look:"Overall business focus, ability to prioritize, decision taking, general business understanding and knowledge, sustainability and scalability of business decisions"},
+    "Team Health & Leadership":{q:"How effectively does the team collaborate, take decisions, and execute together?",look:"Trust in the team, collaboration, leadership, joy of working together, team resilience, sustainability & mental health"},
+  },
   scale: {
     1:{label:"Needs Attention",color:"#e5484d"},
     2:{label:"Developing",color:"#f5a524"},
@@ -188,8 +220,9 @@ const STORE_KEY="hmw.v1";
 // Categories are data now (live in the store, editable in-app). CONFIG.categories is
 // only the default seed. CATS/N are kept in sync with the store via syncCats().
 let CATS=CONFIG.categories.slice();
+let DESCS=[];
 let N=CATS.length;
-function syncCats(){ CATS=store.categories; N=CATS.length; }
+function syncCats(){ CATS=store.categories; DESCS=store.descriptions; N=CATS.length; }
 
 // ---------- persistence ----------
 // Storage is wrapped so a blocked/absent localStorage (e.g. opening the file
@@ -201,11 +234,21 @@ const SAFE={
   set(v){ try { localStorage.setItem(STORE_KEY, v); } catch(e){ storageOK=false; _mem=v; } },
 };
 function uid(){ return "t"+Math.floor(performance.now()*1000).toString(36)+Math.floor(performance.now()).toString(36); }
-function seed(){ return { categories: CONFIG.categories.slice(), teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
+function seedDescs(names){ return names.map(n=>{const d=CONFIG.descriptions[n]; return d?{q:d.q,look:d.look}:{q:"",look:""};}); }
+function seed(){ return { categories: CONFIG.categories.slice(), descriptions: seedDescs(CONFIG.categories), teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
 function normalise(s){
   if(!s || !s.teams || !s.teams.length) s=seed();
   if(!Array.isArray(s.categories) || !s.categories.length) s.categories=CONFIG.categories.slice();
   const n=s.categories.length;
+  // Descriptions are parallel to categories by index. Backfill any that are missing or empty
+  // from the defaults (keyed by name), so existing stored data picks up Cari's text on load.
+  if(!Array.isArray(s.descriptions)) s.descriptions=[];
+  s.descriptions = s.categories.map((name,i)=>{
+    const ex=s.descriptions[i];
+    if(ex && typeof ex==="object" && ((ex.q&&ex.q.trim())||(ex.look&&ex.look.trim()))) return {q:ex.q||"",look:ex.look||""};
+    const def=CONFIG.descriptions[name];
+    return def ? {q:def.q,look:def.look} : {q:(ex&&ex.q)||"",look:(ex&&ex.look)||""};
+  });
   if(!s.activeId || !s.teams.find(t=>t.id===s.activeId)) s.activeId=s.teams[0].id;
   s.teams.forEach(t=>{ if(!Array.isArray(t.scores)) t.scores=[]; while(t.scores.length<n) t.scores.push(3); t.scores=t.scores.slice(0,n); if(!t.view) t.view="wheel"; });
   return s;
@@ -233,6 +276,7 @@ async function serverSave(){
 }
 
 let store=null, scores=[], variant="wheel";
+let openOnPage=new Set();   // which category descriptions are expanded on the page (by index)
 const active=()=>store.teams.find(t=>t.id===store.activeId);
 
 // ---------- geometry helpers ----------
@@ -335,14 +379,29 @@ function render(){
 function caption(){const avg=(scores.reduce((a,b)=>a+b,0)/N).toFixed(1);document.getElementById("caption").innerHTML=`<strong>${active().name}</strong> · average ${avg} / ${MAX}`;}
 function legend(){const w=document.getElementById("legend");w.innerHTML="";for(let s=MIN;s<=MAX;s++){const sp=document.createElement("span");sp.innerHTML=`<span class="dot" style="background:${CONFIG.scale[s].color}"></span>${s} · ${CONFIG.scale[s].label}`;w.appendChild(sp);}}
 function buildRows(){const wrap=document.getElementById("rows");wrap.innerHTML="";
-  CATS.forEach((cat,i)=>{const row=document.createElement("div");row.className="row";
-    const name=document.createElement("div");name.className="name";name.textContent=cat;
+  CATS.forEach((cat,i)=>{
+    const d=DESCS[i]||{};const hasDesc=!!((d.q&&d.q.trim())||(d.look&&d.look.trim()));
+    const cell=document.createElement("div");cell.className="catcell";if(hasDesc&&openOnPage.has(i))cell.classList.add("open");
+    const row=document.createElement("div");row.className="row";
+    const name=document.createElement("div");name.className="name";
+    const lab=document.createElement("span");lab.textContent=cat;name.appendChild(lab);
+    if(hasDesc){const info=document.createElement("button");info.className="info";info.textContent="i";
+      info.title="Show description";info.setAttribute("aria-label","Toggle description for "+cat);
+      info.addEventListener("click",()=>{if(openOnPage.has(i))openOnPage.delete(i);else openOnPage.add(i);cell.classList.toggle("open");});
+      name.appendChild(info);}
     const seg=document.createElement("div");seg.className="seg";
     for(let s=MIN;s<=MAX;s++){const b=document.createElement("button");b.textContent=s;
       b.title=s+" · "+CONFIG.scale[s].label;
       if(scores[i]===s){b.classList.add("active");b.style.background=CONFIG.scale[s].color;}
       b.addEventListener("click",()=>{scores[i]=s;active().scores=scores;persist();buildRows();render();});seg.appendChild(b);}
-    row.appendChild(name);row.appendChild(seg);wrap.appendChild(row);});
+    row.appendChild(name);row.appendChild(seg);cell.appendChild(row);
+    if(hasDesc){const panel=document.createElement("div");panel.className="descpanel";
+      if(d.q&&d.q.trim()){const l=document.createElement("div");l.className="dlabel";l.textContent="Key question";
+        const t=document.createElement("div");t.className="dq";t.textContent=d.q;panel.appendChild(l);panel.appendChild(t);}
+      if(d.look&&d.look.trim()){const l=document.createElement("div");l.className="dlabel";l.textContent="Things to look at";
+        const t=document.createElement("div");t.className="dlook";t.textContent=d.look;panel.appendChild(l);panel.appendChild(t);}
+      cell.appendChild(panel);}
+    wrap.appendChild(cell);});
 }
 function buildScaleKey(){const k=document.getElementById("scaleKey");
   k.innerHTML='<div class="skh">What the scores mean</div>'+
@@ -383,15 +442,34 @@ let dragIdx=null;   // index in catDraft of the row being dragged (null when idl
 function renderCatRows(){
   const list=document.getElementById("catList");list.innerHTML="";
   catDraft.forEach((d,i)=>{
+    const item=document.createElement("div");item.className="cat-item";
     const row=document.createElement("div");row.className="cat-row";
     if(i===dragIdx)row.classList.add("dragging");
     const grip=document.createElement("div");grip.className="grip";grip.textContent="⠿";grip.title="Drag to reorder";
     grip.addEventListener("pointerdown",e=>startDrag(e,i));
     const inp=document.createElement("input");inp.type="text";inp.value=d.name;
     inp.addEventListener("input",()=>{catDraft[i].name=inp.value;});
+    const info=document.createElement("button");info.className="dtoggle"+(d._open?" active":"");info.textContent="i";
+    info.title="Edit description";info.setAttribute("aria-label","Edit description for "+(d.name||"category"));
+    info.addEventListener("click",()=>{catDraft[i]._open=!catDraft[i]._open;renderCatRows();});
     const del=document.createElement("button");del.className="del";del.textContent="×";del.title="Delete category";
     del.addEventListener("click",()=>{catDraft.splice(i,1);renderCatRows();});
-    row.appendChild(grip);row.appendChild(inp);row.appendChild(del);list.appendChild(row);
+    row.appendChild(grip);row.appendChild(inp);row.appendChild(info);row.appendChild(del);
+    item.appendChild(row);
+    if(d._open){
+      const panel=document.createElement("div");panel.className="cat-desc";
+      const ql=document.createElement("div");ql.className="dlabel";ql.textContent="Key question";
+      const qf=document.createElement("textarea");qf.className="dfield";qf.rows=2;qf.value=d.q||"";
+      qf.placeholder="e.g. How consistently do we…";
+      qf.addEventListener("input",()=>{catDraft[i].q=qf.value;});
+      const ll=document.createElement("div");ll.className="dlabel";ll.style.marginTop="9px";ll.textContent="Things to look at";
+      const lf=document.createElement("textarea");lf.className="dfield";lf.rows=3;lf.value=d.look||"";
+      lf.placeholder="e.g. Production quality, regularity…";
+      lf.addEventListener("input",()=>{catDraft[i].look=lf.value;});
+      panel.appendChild(ql);panel.appendChild(qf);panel.appendChild(ll);panel.appendChild(lf);
+      item.appendChild(panel);
+    }
+    list.appendChild(item);
   });
 }
 // Pointer-based reorder (not the native drag API, which is janky and dead on touch).
@@ -427,7 +505,7 @@ function startDrag(e,i){
   document.addEventListener("pointerup",up);
 }
 function openCatEditor(){
-  catDraft=store.categories.map((name,idx)=>({name,from:idx}));
+  catDraft=store.categories.map((name,idx)=>({name, q:(store.descriptions[idx]||{}).q||"", look:(store.descriptions[idx]||{}).look||"", from:idx, _open:false}));
   document.getElementById("catWarn").textContent="";
   renderCatRows();
   document.getElementById("catModal").classList.add("open");
@@ -437,8 +515,8 @@ document.getElementById("editCats").addEventListener("click",openCatEditor);
 document.getElementById("catCancel").addEventListener("click",closeCatEditor);
 document.getElementById("catModal").addEventListener("click",e=>{if(e.target.id==="catModal")closeCatEditor();});
 document.getElementById("addCat").addEventListener("click",()=>{
-  catDraft.push({name:"New category",from:null});renderCatRows();
-  const inputs=document.getElementById("catList").querySelectorAll("input");
+  catDraft.push({name:"New category",q:"",look:"",from:null,_open:false});renderCatRows();
+  const inputs=document.getElementById("catList").querySelectorAll(".cat-row input");
   const last=inputs[inputs.length-1];if(last){last.focus();last.select();}
 });
 document.getElementById("catSave").addEventListener("click",()=>{
@@ -448,8 +526,10 @@ document.getElementById("catSave").addEventListener("click",()=>{
   const deleted=store.categories.filter((name,idx)=>!kept.has(idx));
   if(deleted.length && !confirm(`Delete ${deleted.length} categor${deleted.length>1?"ies":"y"}: "${deleted.join('", "')}"?\n\nThis removes ${deleted.length>1?"their":"its"} scores from every team and can't be undone.`)) return;
   store.categories=clean.map(d=>d.name.trim());
+  store.descriptions=clean.map(d=>({q:(d.q||"").trim(),look:(d.look||"").trim()}));
   store.teams.forEach(t=>{const old=t.scores;t.scores=clean.map(d=> d.from!=null && d.from<old.length ? old[d.from] : 3);});
   syncCats();
+  openOnPage.clear();   // indices may have shifted; start the page's panels closed
   persist();            // shared data edit -> password-gated
   closeCatEditor();
   applyActive();
