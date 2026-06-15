@@ -65,13 +65,20 @@
               border:1px solid var(--line); background:var(--card); border-radius:8px; cursor:pointer;
               font-size:12px; font-weight:600; color:var(--muted); }
   .editcats:hover { border-color:#cfccc6; color:var(--ink); }
+  /* The editor is a full-height drawer pinned to the right, not a centered box —
+     room for each category's description + questions without everything cramping. */
   .modal-bg { position:fixed; inset:0; background:rgba(20,18,16,.34); display:none;
-              align-items:center; justify-content:center; z-index:50; padding:20px; }
+              justify-content:flex-end; z-index:50; }
   .modal-bg.open { display:flex; }
-  .modal { background:var(--card); border-radius:14px; padding:22px; width:100%; max-width:440px;
-           max-height:84vh; overflow:auto; box-shadow:0 14px 44px rgba(0,0,0,.22); }
-  .modal h2 { font-size:17px; margin:0 0 4px; }
-  .modal .note { font-size:12.5px; color:var(--muted); margin:0 0 16px; }
+  .modal { background:var(--card); border-radius:0; padding:0; width:100%; max-width:496px;
+           height:100vh; overflow-y:auto; box-shadow:-14px 0 44px rgba(0,0,0,.18);
+           display:flex; flex-direction:column; }
+  .modal .mhead { position:sticky; top:0; background:var(--card); z-index:2;
+                  padding:22px 24px 12px; border-bottom:1px solid var(--line); }
+  .modal .mbody { padding:16px 24px; flex:1 1 auto; }
+  .modal h2 { font-size:17px; margin:0; }
+  .modal .note { font-size:12.5px; color:var(--muted); margin:6px 0 0; }
+  @media (max-width:520px){ .modal { max-width:100%; } }
   .cat-row { display:flex; align-items:center; gap:8px; margin-bottom:0; }
   .cat-item { margin-bottom:8px; }
   .cat-row input { flex:1 1 auto; padding:8px 10px; font-size:14px; border:1px solid var(--line); border-radius:8px; }
@@ -105,11 +112,30 @@
   .dlabel { font-size:10px; font-weight:700; color:#8a8780; text-transform:uppercase; letter-spacing:.04em; margin:0 0 3px; }
   .dq { font-size:12px; color:var(--ink); margin:0 0 9px; line-height:1.4; }
   .dlook { font-size:12px; color:#666; line-height:1.4; }
-  .modal-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:16px; }
+  .modal-actions { display:flex; justify-content:space-between; align-items:center; gap:10px;
+                   position:sticky; bottom:0; background:var(--card); padding:12px 24px;
+                   border-top:1px solid var(--line); margin-top:auto; z-index:2; }
   .addcat { padding:7px 12px; border:1px dashed var(--line); background:var(--card); border-radius:8px;
             cursor:pointer; font-size:13px; font-weight:600; color:var(--muted); width:100%; margin-top:4px; }
   .addcat:hover { color:var(--ink); border-color:#cfccc6; }
   .modal-actions .right { display:flex; gap:8px; }
+
+  /* per-category questions editor (inside the expanded detail panel) */
+  .qsec { margin-top:12px; padding-top:10px; border-top:1px dashed var(--line); }
+  .qrow { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+  .qrow .qnum { flex:0 0 auto; width:16px; text-align:right; font-size:11px; color:#aaa; font-weight:700; }
+  .qrow input { flex:1 1 auto; padding:6px 8px; font-size:12.5px; border:1px solid var(--line);
+                border-radius:7px; font-family:inherit; color:var(--ink); background:#fff; }
+  .qrow .qbtn { flex:0 0 auto; width:24px; height:28px; border:1px solid var(--line); background:#fff;
+                border-radius:6px; cursor:pointer; color:#999; font-size:12px; line-height:1; padding:0; }
+  .qrow .qbtn:hover:not(:disabled) { border-color:#cfccc6; color:#555; }
+  .qrow .qbtn:disabled { opacity:.3; cursor:default; }
+  .qrow .qbtn.qdel { color:#c0392b; }
+  .qrow .qbtn.qdel:hover { background:#fdecec; border-color:#f0c2c2; }
+  .addq { margin-top:4px; padding:6px 10px; border:1px dashed var(--line); background:#fff; border-radius:7px;
+          cursor:pointer; font-size:12px; font-weight:600; color:var(--muted); }
+  .addq:hover { color:var(--ink); border-color:#cfccc6; }
+  .qempty { font-size:11.5px; color:#aaa; margin:2px 0 8px; }
 
   @media print {
     .toolbar, .tabs, .blurb, .controls, .sub, .hint, h1, .modal-bg { display:none !important; }
@@ -154,7 +180,7 @@
   <div class="layout">
     <div class="controls">
       <div class="scalekey" id="scaleKey"></div>
-      <button class="editcats" id="editCats">✎ Edit categories</button>
+      <button class="editcats" id="editCats">✎ Edit categories &amp; questions</button>
       <div id="rows"></div>
       <p class="hint" id="hint"></p>
     </div>
@@ -168,10 +194,14 @@
 
 <div class="modal-bg" id="catModal">
   <div class="modal">
-    <h2>Edit categories</h2>
-    <p class="note">These apply to every team. Drag the ⠿ handle to reorder, the <i>i</i> to add a description (shown on the page behind the ⓘ). Renaming is safe. Deleting a category removes its scores from all teams. New categories start every team at 3 (Strong) — adjust after.</p>
-    <div id="catList"></div>
-    <button class="addcat" id="addCat">+ Add category</button>
+    <div class="mhead">
+      <h2>Categories &amp; questions</h2>
+      <p class="note">These apply to every team. Drag the ⠿ handle to reorder, the <i>i</i> to open a category's description and self-assessment questions. Renaming is safe. Deleting a category removes its questions and scores from all teams. New categories start every team at 3 (Strong) — adjust after.</p>
+    </div>
+    <div class="mbody">
+      <div id="catList"></div>
+      <button class="addcat" id="addCat">+ Add category</button>
+    </div>
     <div class="modal-actions">
       <span class="note" id="catWarn" style="margin:0;"></span>
       <div class="right">
@@ -235,7 +265,7 @@ const SAFE={
 };
 function uid(){ return "t"+Math.floor(performance.now()*1000).toString(36)+Math.floor(performance.now()).toString(36); }
 function seedDescs(names){ return names.map(n=>{const d=CONFIG.descriptions[n]; return d?{q:d.q,look:d.look}:{q:"",look:""};}); }
-function seed(){ return { categories: CONFIG.categories.slice(), descriptions: seedDescs(CONFIG.categories), teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
+function seed(){ return { categories: CONFIG.categories.slice(), descriptions: seedDescs(CONFIG.categories), questions: CONFIG.categories.map(()=>[]), teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
 function normalise(s){
   if(!s || !s.teams || !s.teams.length) s=seed();
   if(!Array.isArray(s.categories) || !s.categories.length) s.categories=CONFIG.categories.slice();
@@ -249,6 +279,9 @@ function normalise(s){
     const def=CONFIG.descriptions[name];
     return def ? {q:def.q,look:def.look} : {q:(ex&&ex.q)||"",look:(ex&&ex.look)||""};
   });
+  // Questions are parallel to categories by index; each is a list of question strings.
+  if(!Array.isArray(s.questions)) s.questions=[];
+  s.questions = s.categories.map((name,i)=>Array.isArray(s.questions[i]) ? s.questions[i].filter(q=>typeof q==="string") : []);
   if(!s.activeId || !s.teams.find(t=>t.id===s.activeId)) s.activeId=s.teams[0].id;
   s.teams.forEach(t=>{ if(!Array.isArray(t.scores)) t.scores=[]; while(t.scores.length<n) t.scores.push(3); t.scores=t.scores.slice(0,n); if(!t.view) t.view="wheel"; });
   return s;
@@ -467,6 +500,33 @@ function renderCatRows(){
       lf.placeholder="e.g. Production quality, regularity…";
       lf.addEventListener("input",()=>{catDraft[i].look=lf.value;});
       panel.appendChild(ql);panel.appendChild(qf);panel.appendChild(ll);panel.appendChild(lf);
+
+      // self-assessment questions for this category
+      const qs=catDraft[i].questions||(catDraft[i].questions=[]);
+      const qsec=document.createElement("div");qsec.className="qsec";
+      const qlab=document.createElement("div");qlab.className="dlabel";qlab.textContent="Self-assessment questions (1–4)";
+      qsec.appendChild(qlab);
+      if(!qs.length){const e=document.createElement("div");e.className="qempty";e.textContent="No questions yet — teams will answer these to compute their self-score.";qsec.appendChild(e);}
+      qs.forEach((qt,qi)=>{
+        const qrow=document.createElement("div");qrow.className="qrow";
+        const num=document.createElement("span");num.className="qnum";num.textContent=(qi+1);
+        const qin=document.createElement("input");qin.type="text";qin.value=qt;qin.placeholder="e.g. We publish on a consistent schedule";
+        qin.addEventListener("input",()=>{qs[qi]=qin.value;});
+        const up=document.createElement("button");up.className="qbtn";up.textContent="↑";up.title="Move up";up.disabled=qi===0;
+        up.addEventListener("click",()=>{const t=qs[qi-1];qs[qi-1]=qs[qi];qs[qi]=t;renderCatRows();});
+        const dn=document.createElement("button");dn.className="qbtn";dn.textContent="↓";dn.title="Move down";dn.disabled=qi===qs.length-1;
+        dn.addEventListener("click",()=>{const t=qs[qi+1];qs[qi+1]=qs[qi];qs[qi]=t;renderCatRows();});
+        const qdel=document.createElement("button");qdel.className="qbtn qdel";qdel.textContent="×";qdel.title="Delete question";
+        qdel.addEventListener("click",()=>{qs.splice(qi,1);renderCatRows();});
+        qrow.appendChild(num);qrow.appendChild(qin);qrow.appendChild(up);qrow.appendChild(dn);qrow.appendChild(qdel);
+        qsec.appendChild(qrow);
+      });
+      const addq=document.createElement("button");addq.className="addq";addq.textContent="+ Add question";
+      addq.addEventListener("click",()=>{qs.push("");renderCatRows();
+        const reItem=document.querySelectorAll("#catList .cat-item")[i];
+        if(reItem){const inputs=reItem.querySelectorAll(".qrow input");const last=inputs[inputs.length-1];if(last)last.focus();}});
+      qsec.appendChild(addq);
+      panel.appendChild(qsec);
       item.appendChild(panel);
     }
     list.appendChild(item);
@@ -505,7 +565,7 @@ function startDrag(e,i){
   document.addEventListener("pointerup",up);
 }
 function openCatEditor(){
-  catDraft=store.categories.map((name,idx)=>({name, q:(store.descriptions[idx]||{}).q||"", look:(store.descriptions[idx]||{}).look||"", from:idx, _open:false}));
+  catDraft=store.categories.map((name,idx)=>({name, q:(store.descriptions[idx]||{}).q||"", look:(store.descriptions[idx]||{}).look||"", questions:(store.questions[idx]||[]).slice(), from:idx, _open:false}));
   document.getElementById("catWarn").textContent="";
   renderCatRows();
   document.getElementById("catModal").classList.add("open");
@@ -515,7 +575,7 @@ document.getElementById("editCats").addEventListener("click",openCatEditor);
 document.getElementById("catCancel").addEventListener("click",closeCatEditor);
 document.getElementById("catModal").addEventListener("click",e=>{if(e.target.id==="catModal")closeCatEditor();});
 document.getElementById("addCat").addEventListener("click",()=>{
-  catDraft.push({name:"New category",q:"",look:"",from:null,_open:false});renderCatRows();
+  catDraft.push({name:"New category",q:"",look:"",questions:[],from:null,_open:false});renderCatRows();
   const inputs=document.getElementById("catList").querySelectorAll(".cat-row input");
   const last=inputs[inputs.length-1];if(last){last.focus();last.select();}
 });
@@ -527,6 +587,7 @@ document.getElementById("catSave").addEventListener("click",()=>{
   if(deleted.length && !confirm(`Delete ${deleted.length} categor${deleted.length>1?"ies":"y"}: "${deleted.join('", "')}"?\n\nThis removes ${deleted.length>1?"their":"its"} scores from every team and can't be undone.`)) return;
   store.categories=clean.map(d=>d.name.trim());
   store.descriptions=clean.map(d=>({q:(d.q||"").trim(),look:(d.look||"").trim()}));
+  store.questions=clean.map(d=>(d.questions||[]).map(q=>(q||"").trim()).filter(Boolean));
   store.teams.forEach(t=>{const old=t.scores;t.scores=clean.map(d=> d.from!=null && d.from<old.length ? old[d.from] : 3);});
   syncCats();
   openOnPage.clear();   // indices may have shifted; start the page's panels closed
