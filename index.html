@@ -333,6 +333,12 @@
         document.getElementById("roleRR").addEventListener("change", fetchRoundRound);
       }
 
+      // ---- embed mode ----
+      if (new URLSearchParams(location.search).has("embed")) {
+        document.querySelector(".topbar").style.display = "none";
+        document.body.style.background = "#fff";
+      }
+
       // ---- boot ----
       async function boot() {
         setContent("snapshot-content", spinner());
