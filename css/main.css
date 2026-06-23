@@ -1,0 +1,248 @@
+/* ---- tokens + reset ---- */
+:root {
+  --bg: #f5f3ef;
+  --ink: #1a1a1a;
+  --muted: #888;
+  --line: #e8e4df;
+  --card: #fff;
+  --yellow: #FFC300;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Rubik', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.45;
+}
+svg text { font-family: 'Rubik', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+/* ---- page wrapper ---- */
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px 64px; }
+
+/* ---- top bar ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #1a1a1a;
+  padding: 14px 28px;
+  margin: 0 -24px 28px;
+}
+.logo-easy { font-weight: 800; font-size: 22px; color: #fff; letter-spacing: -0.3px; }
+.logo-lang {
+  font-weight: 800;
+  font-size: 22px;
+  color: #1a1a1a;
+  background: var(--yellow);
+  padding: 1px 7px;
+  border-radius: 3px;
+  letter-spacing: -0.3px;
+}
+
+/* ---- page heading ---- */
+.page-title { font-size: 26px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.5px; margin-bottom: 4px; }
+.page-sub   { font-size: 14px; color: #888; margin-bottom: 22px; }
+
+/* ---- team tabs ---- */
+.team-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+.team-tabs::-webkit-scrollbar { display: none; }
+.team-tab {
+  flex: 0 0 auto;
+  padding: 7px 16px;
+  border: 2px solid #ddd;
+  background: #fff;
+  border-radius: 100px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #888;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: border-color .15s;
+}
+.team-tab:hover:not(.active) { border-color: var(--yellow); }
+.team-tab.active { background: var(--yellow); border-color: var(--yellow); color: #1a1a1a; }
+
+/* ---- view tabs ---- */
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.view-tab {
+  padding: 8px 16px;
+  border: 2px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: #888;
+  font-family: inherit;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.view-tab:hover:not(.active) { border-color: #1a1a1a; color: #1a1a1a; }
+.view-tab.active { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+
+/* ---- snapshot badge ---- */
+.snapshot-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 16px;
+}
+.snapshot-round {
+  color: var(--yellow);
+  font-size: 14px;
+  font-weight: 800;
+  background: #1a1a1a;
+  padding: 3px 10px;
+  border-radius: 5px;
+  margin-left: 4px;
+}
+
+/* ---- tab panels ---- */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ---- wheel cards ---- */
+.wheel-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  padding: 20px;
+  text-align: center;
+}
+.wheel-label {
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 12px;
+}
+
+/* ---- two-column layout ---- */
+.two-cols { display: flex; gap: 24px; align-items: flex-start; }
+.two-cols .col { flex: 1; min-width: 0; }
+.single-wheel { max-width: 500px; margin: 0 auto; }
+@media (max-width: 640px) { .two-cols { flex-direction: column; } }
+
+/* ---- score list card (Team vs Reviewer per-column table) ---- */
+.score-list {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  padding: 16px 20px;
+  margin-top: 14px;
+}
+.score-table-sm { width: 100%; border-collapse: collapse; font-size: 13px; }
+.score-table-sm td { padding: 5px 8px; border-bottom: 1px solid #f0ede8; }
+.score-table-sm tr:last-child td { border-bottom: none; }
+
+/* ---- diff table card (Round vs Round) ---- */
+.diff-table {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  padding: 16px 20px;
+  margin-top: 20px;
+}
+.score-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.score-table th {
+  text-align: left;
+  padding: 5px 10px;
+  color: #888;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 2px solid var(--line);
+}
+.score-table th:not(:first-child) { text-align: center; }
+.score-table td { padding: 7px 10px; border-bottom: 1px solid #f0ede8; }
+.score-table tr:last-child td { border-bottom: none; }
+.score-table td:not(:first-child) { text-align: center; font-weight: 700; }
+
+/* ---- pills ---- */
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+}
+.score-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+}
+
+/* ---- selector row (Round vs Round tab) ---- */
+.selrow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+}
+.selrow label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.selrow select {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 600;
+  color: #1a1a1a;
+  min-width: 140px;
+  font-family: inherit;
+}
+.vs-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  background: #1a1a1a;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* ---- loading / empty states ---- */
+.state-msg { text-align: center; padding: 48px 0; color: #888; font-size: 15px; font-weight: 500; }
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--line);
+  border-top-color: #1a1a1a;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media print {
+  .topbar, .team-tabs, .tabs, .selrow { display: none !important; }
+  body { background: #fff; }
+  .wrap { padding: 0; }
+}

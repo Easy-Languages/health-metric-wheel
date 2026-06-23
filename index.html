@@ -1,660 +1,350 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Health Metric Wheel</title>
-<style>
-  :root { --bg:#fbfaf8; --ink:#2b2b2b; --muted:#777; --line:#e3e0db; --card:#fff; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-         color:var(--ink); background:var(--bg); line-height:1.45; }
-  .wrap { max-width:1040px; margin:0 auto; padding:28px 24px 64px; }
-  h1 { font-size:21px; margin:0 0 4px; font-weight:650; }
-  .sub { color:var(--muted); font-size:14px; margin:0 0 20px; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Health Metric Wheel — Easy Languages</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <span class="logo-easy">EASY</span
+        ><span class="logo-lang">LANGUAGES</span>
+        <span
+          style="
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 8px;
+          "
+          >Team Health</span
+        >
+      </div>
 
-  .toolbar { display:flex; gap:18px; align-items:center; flex-wrap:wrap;
-             padding:12px 14px; background:var(--card); border:1px solid var(--line);
-             border-radius:12px; margin-bottom:16px; }
-  .toolbar .group { display:flex; gap:8px; align-items:center; }
-  .toolbar .spacer { flex:1 1 auto; }
-  select { padding:7px 10px; font-size:14px; border:1px solid var(--line); border-radius:8px;
-           background:var(--card); font-weight:600; min-width:170px; }
-  .btn { padding:7px 12px; border:1px solid var(--line); background:var(--card); border-radius:8px;
-         cursor:pointer; font-size:13px; font-weight:600; color:var(--ink); }
-  .btn:hover { border-color:#cfccc6; }
-  .btn.ghost { color:var(--muted); }
+      <div class="page-title">Health Metric Wheel</div>
+      <div class="page-sub">
+        Easy Languages team health — averaged from surveys, scored 1–4.
+      </div>
 
-  .tabs { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
-  .tabs button { padding:8px 14px; border:1px solid var(--line); background:var(--card);
-                 border-radius:9px; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); }
-  .tabs button.active { background:var(--ink); color:#fff; border-color:var(--ink); }
-  .blurb { font-size:13px; color:var(--muted); margin:6px 0 18px; min-height:18px; }
+      <div class="team-tabs" id="teamTabs"></div>
 
-  .layout { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
-  .controls { flex:0 0 240px; min-width:220px; }
-  .stage { flex:1 1 520px; min-width:340px; text-align:center; }
-  .scalekey { margin:0 0 14px; padding:10px 12px; background:var(--card); border:1px solid var(--line); border-radius:10px; }
-  .scalekey .skh { font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-bottom:7px; }
-  .scalekey .ski { display:flex; align-items:center; gap:7px; font-size:12px; margin:3px 0; }
-  .scalekey .ski .dot { width:11px; height:11px; border-radius:3px; flex:0 0 auto; }
-  .scalekey .ski b { font-weight:700; width:9px; }
-  .row { display:flex; align-items:center; justify-content:space-between; gap:8px;
-         padding:7px 0; border-bottom:1px solid var(--line); }
-  .row .name { font-size:12.5px; max-width:62%; }
-  .seg { display:flex; gap:5px; }
-  .seg button { width:28px; height:28px; border-radius:7px; border:1px solid var(--line);
-                background:var(--card); cursor:pointer; font-size:12px; font-weight:600; color:var(--muted); }
-  .seg button.active { color:#fff; border-color:transparent; }
-  figcaption { margin-top:10px; font-size:14px; color:var(--muted); }
-  figcaption strong { color:var(--ink); font-size:16px; }
-  .legend { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:16px; font-size:12px; color:var(--muted); }
-  .legend span { display:inline-flex; align-items:center; gap:5px; }
-  .dot { width:11px; height:11px; border-radius:3px; display:inline-block; }
-  .hint { font-size:11.5px; color:#aaa; margin-top:26px; }
-  svg text { font-family:inherit; }
+      <div class="tabs">
+        <button class="view-tab active" data-tab="snapshot">
+          Latest Snapshot
+        </button>
+        <button class="view-tab" data-tab="selfreviewer">
+          Team vs Reviewer
+        </button>
+        <button class="view-tab" data-tab="roundround">Round vs Round</button>
+      </div>
 
-  .bars { text-align:left; max-width:560px; margin:0 auto; }
-  .bar-row { margin:0 0 14px; }
-  .bar-row .lab { display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px; }
-  .bar-row .lab b { font-weight:600; }
-  .track { height:18px; background:#eee8e0; border-radius:9px; overflow:hidden; }
-  .fill { height:100%; border-radius:9px; }
+      <div id="panel-snapshot" class="tab-panel active">
+        <div id="snapshot-content"></div>
+      </div>
 
-  .editcats { display:inline-flex; align-items:center; gap:5px; margin:0 0 12px; padding:6px 10px;
-              border:1px solid var(--line); background:var(--card); border-radius:8px; cursor:pointer;
-              font-size:12px; font-weight:600; color:var(--muted); }
-  .editcats:hover { border-color:#cfccc6; color:var(--ink); }
-  /* The editor is a full-height drawer pinned to the right, not a centered box —
-     room for each category's description + questions without everything cramping. */
-  .modal-bg { position:fixed; inset:0; background:rgba(20,18,16,.34); display:none;
-              justify-content:flex-end; z-index:50; }
-  .modal-bg.open { display:flex; }
-  .modal { background:var(--card); border-radius:0; padding:0; width:100%; max-width:496px;
-           height:100vh; overflow-y:auto; box-shadow:-14px 0 44px rgba(0,0,0,.18);
-           display:flex; flex-direction:column; }
-  .modal .mhead { position:sticky; top:0; background:var(--card); z-index:2;
-                  padding:22px 24px 12px; border-bottom:1px solid var(--line); }
-  .modal .mbody { padding:16px 24px; flex:1 1 auto; }
-  .modal h2 { font-size:17px; margin:0; }
-  .modal .note { font-size:12.5px; color:var(--muted); margin:6px 0 0; }
-  @media (max-width:520px){ .modal { max-width:100%; } }
-  .cat-row { display:flex; align-items:center; gap:8px; margin-bottom:0; }
-  .cat-item { margin-bottom:8px; }
-  .cat-row input { flex:1 1 auto; padding:8px 10px; font-size:14px; border:1px solid var(--line); border-radius:8px; }
-  .cat-row .del { flex:0 0 auto; width:30px; height:30px; border:1px solid var(--line); background:var(--card);
-                  border-radius:7px; cursor:pointer; color:#c0392b; font-size:15px; line-height:1; }
-  .cat-row .del:hover { background:#fdecec; border-color:#f0c2c2; }
-  .cat-row .grip { flex:0 0 auto; width:24px; height:30px; display:flex; align-items:center; justify-content:center;
-                   cursor:grab; color:#c2bfb8; font-size:15px; line-height:1; border-radius:7px;
-                   touch-action:none; user-select:none; }
-  .cat-row .grip:hover { color:#8a8780; background:#f4f2ee; }
-  .cat-row.dragging { background:#fbf8f3; box-shadow:0 7px 20px rgba(0,0,0,.16); position:relative; z-index:2; }
-  .cat-row.dragging .grip { cursor:grabbing; }
-  body.dragging-active { user-select:none; cursor:grabbing; }
-  .cat-row .dtoggle { flex:0 0 auto; width:30px; height:30px; border:1px solid var(--line); background:var(--card);
-                      border-radius:7px; cursor:pointer; color:#999; font-size:13px; font-weight:700; font-style:italic; line-height:1; }
-  .cat-row .dtoggle:hover { border-color:#cfccc6; color:#555; }
-  .cat-row .dtoggle.active { background:#efe9df; border-color:#cfc8ba; color:#555; }
-  .cat-desc { margin:6px 0 0 26px; padding:10px 12px; background:var(--bg); border:1px solid var(--line); border-radius:9px; }
-  .cat-desc .dlabel { margin-bottom:4px; }
-  .dfield { width:100%; padding:7px 9px; font-size:12.5px; border:1px solid var(--line); border-radius:7px;
-            font-family:inherit; color:var(--ink); background:#fff; resize:vertical; }
+      <div id="panel-selfreviewer" class="tab-panel">
+        <div id="selfreviewer-content"></div>
+      </div>
 
-  /* on-page category descriptions */
-  .row .name { display:flex; align-items:center; gap:6px; }
-  .info { flex:0 0 auto; width:18px; height:18px; border-radius:50%; border:1px solid #d8d5cf; background:#fff;
-          color:#999; font-size:11px; font-weight:700; font-style:italic; line-height:1; cursor:pointer; padding:0; }
-  .info:hover { border-color:#b8b4ad; color:#555; }
-  .catcell.open .info { background:#efe9df; border-color:#cfc8ba; color:#555; }
-  .descpanel { display:none; background:#f4f2ec; border:1px solid var(--line); border-radius:9px; padding:10px 12px; margin:2px 0 8px; }
-  .catcell.open .descpanel { display:block; }
-  .dlabel { font-size:10px; font-weight:700; color:#8a8780; text-transform:uppercase; letter-spacing:.04em; margin:0 0 3px; }
-  .dq { font-size:12px; color:var(--ink); margin:0 0 9px; line-height:1.4; }
-  .dlook { font-size:12px; color:#666; line-height:1.4; }
-  .modal-actions { display:flex; justify-content:space-between; align-items:center; gap:10px;
-                   position:sticky; bottom:0; background:var(--card); padding:12px 24px;
-                   border-top:1px solid var(--line); margin-top:auto; z-index:2; }
-  .addcat { padding:7px 12px; border:1px dashed var(--line); background:var(--card); border-radius:8px;
-            cursor:pointer; font-size:13px; font-weight:600; color:var(--muted); width:100%; margin-top:4px; }
-  .addcat:hover { color:var(--ink); border-color:#cfccc6; }
-  .modal-actions .right { display:flex; gap:8px; }
-
-  /* per-category questions editor (inside the expanded detail panel) */
-  .qsec { margin-top:12px; padding-top:10px; border-top:1px dashed var(--line); }
-  .qrow { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
-  .qrow .qnum { flex:0 0 auto; width:16px; text-align:right; font-size:11px; color:#aaa; font-weight:700; }
-  .qrow input { flex:1 1 auto; padding:6px 8px; font-size:12.5px; border:1px solid var(--line);
-                border-radius:7px; font-family:inherit; color:var(--ink); background:#fff; }
-  .qrow .qbtn { flex:0 0 auto; width:24px; height:28px; border:1px solid var(--line); background:#fff;
-                border-radius:6px; cursor:pointer; color:#999; font-size:12px; line-height:1; padding:0; }
-  .qrow .qbtn:hover:not(:disabled) { border-color:#cfccc6; color:#555; }
-  .qrow .qbtn:disabled { opacity:.3; cursor:default; }
-  .qrow .qbtn.qdel { color:#c0392b; }
-  .qrow .qbtn.qdel:hover { background:#fdecec; border-color:#f0c2c2; }
-  .addq { margin-top:4px; padding:6px 10px; border:1px dashed var(--line); background:#fff; border-radius:7px;
-          cursor:pointer; font-size:12px; font-weight:600; color:var(--muted); }
-  .addq:hover { color:var(--ink); border-color:#cfccc6; }
-  .qempty { font-size:11.5px; color:#aaa; margin:2px 0 8px; }
-
-  @media print {
-    .toolbar, .tabs, .blurb, .controls, .sub, .hint, h1, .modal-bg { display:none !important; }
-    .layout { display:block; }
-    .stage { width:100%; min-width:0; }
-    body { background:#fff; }
-    .wrap { padding:0; }
-  }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>Health Metric Wheel</h1>
-  <p class="sub">Easy Languages team health — scored 1–4. Strong reads green, weak reads red.</p>
-
-  <div class="toolbar">
-    <div class="group">
-      <label for="teamSel" style="font-size:13px;font-weight:600;">Team</label>
-      <select id="teamSel"></select>
-      <button class="btn" id="newTeam">+ New</button>
-      <button class="btn ghost" id="renameTeam">Rename</button>
-      <button class="btn ghost" id="delTeam">Delete</button>
-    </div>
-    <div class="spacer"></div>
-    <div class="group">
-      <button class="btn" id="pngBtn">Download PNG</button>
-      <button class="btn" id="pdfBtn">Save as PDF</button>
-      <button class="btn ghost" id="backupBtn">Download backup</button>
-      <button class="btn ghost" id="restoreBtn">Load backup</button>
-      <input type="file" id="fileIn" accept="application/json" style="display:none" />
-    </div>
-  </div>
-
-  <div class="tabs">
-    <button data-v="wheel" class="active">Filled wheel</button>
-    <button data-v="hub">Hub &amp; spokes</button>
-    <button data-v="radar">Cleaner radar</button>
-    <button data-v="bars">Horizontal bars</button>
-  </div>
-  <div class="blurb" id="blurb"></div>
-
-  <div class="layout">
-    <div class="controls">
-      <div class="scalekey" id="scaleKey"></div>
-      <button class="editcats" id="editCats">✎ Edit categories &amp; questions</button>
-      <div id="rows"></div>
-      <p class="hint" id="hint"></p>
-    </div>
-    <figure class="stage" style="margin:0;">
-      <div id="canvas"></div>
-      <figcaption id="caption"></figcaption>
-      <div class="legend" id="legend"></div>
-    </figure>
-  </div>
-</div>
-
-<div class="modal-bg" id="catModal">
-  <div class="modal">
-    <div class="mhead">
-      <h2>Categories &amp; questions</h2>
-      <p class="note">These apply to every team. Drag the ⠿ handle to reorder, the <i>i</i> to open a category's description and self-assessment questions. Renaming is safe. Deleting a category removes its questions and scores from all teams. New categories start every team at 3 (Strong) — adjust after.</p>
-    </div>
-    <div class="mbody">
-      <div id="catList"></div>
-      <button class="addcat" id="addCat">+ Add category</button>
-    </div>
-    <div class="modal-actions">
-      <span class="note" id="catWarn" style="margin:0;"></span>
-      <div class="right">
-        <button class="btn ghost" id="catCancel">Cancel</button>
-        <button class="btn" id="catSave">Save</button>
+      <div id="panel-roundround" class="tab-panel">
+        <div class="selrow">
+          <label>View</label>
+          <select id="roleRR">
+            <option value="teamMember">Team</option>
+            <option value="reviewer">Reviewer</option>
+          </select>
+          <label>Round A</label>
+          <select id="roundA"></select>
+          <span class="vs-badge">vs</span>
+          <label>Round B</label>
+          <select id="roundB"></select>
+        </div>
+        <div id="roundround-content"></div>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
-// ---- CONFIG: edit categories + scale here, no rebuild needed ----
-const CONFIG = {
-  categories: [
-    "Content Quality","Audience Connection","Learner Understanding & Educational Value",
-    "Audience Growth","Business Model & Monetization","Strategic Focus","Team Health & Leadership",
-  ],
-  // Default descriptions, keyed by category name. Used to seed the editable copy in the
-  // store; once seeded, edits live in store.descriptions and these are just the fallback.
-  descriptions: {
-    "Content Quality":{q:"How consistently do we produce high-quality content that attracts and retains our audience?",look:"Production quality, regularity, systems, topic choices"},
-    "Audience Connection":{q:"How strongly do we build trust, loyalty, and emotional connection with our audience?",look:"Host authenticity, approachability, recognizability, community connection, likability, building trust with audience"},
-    "Learner Understanding & Educational Value":{q:"How well do we understand our learners and help them achieve meaningful learning outcomes?",look:"Does the team have a clear definition of their target audience? Which levels does the team produce for and what do they have to offer for each level? How do they position themselves in the market? Which learning goals are connected for each audience? Is there a natural product ladder? (beginner offers, intermediate offers, advanced offers)"},
-    "Audience Growth":{q:"How effectively do we attract new learners and grow our audience?",look:"YouTube growth, podcast growth, SEO, Newsletter/Emaillist growth, discoverability"},
-    "Business Model & Monetization":{q:"How effective is our business model at turning audience value into sustainable revenue?",look:"Product choices (Membership, Courses, Coaching), Ratio of free users vs. paid users, Pricing, How well does our portfolio of paid offers match the needs of our audience? Conversions"},
-    "Strategic Focus":{q:"How clear and focused is our strategy for growing the business?",look:"Overall business focus, ability to prioritize, decision taking, general business understanding and knowledge, sustainability and scalability of business decisions"},
-    "Team Health & Leadership":{q:"How effectively does the team collaborate, take decisions, and execute together?",look:"Trust in the team, collaboration, leadership, joy of working together, team resilience, sustainability & mental health"},
-  },
-  scale: {
-    1:{label:"Needs Attention",color:"#e5484d"},
-    2:{label:"Developing",color:"#f5a524"},
-    3:{label:"Strong",color:"#9bb83a"},
-    4:{label:"Excellent",color:"#3a9b5c"},
-  },
-};
-const BLURBS = {
-  wheel:"Seven equal slices, each filled from the center out to its score. Fuller + greener = healthier. Reads as one shape.",
-  hub:"The classic Lifeplan layout. Team in the middle, each category a labeled bubble on a tick-marked spoke, score marked along the line.",
-  radar:"One soft shape over seven axes, with a colored dot per score. Shows the team's 'shape' at a glance.",
-  bars:"Most legible, zero learning curve. Length + color = score.",
-};
-// -----------------------------------------------------------------
+    <script src="js/config.js"></script>
+    <script src="js/wheel.js"></script>
+    <script src="js/survey.js"></script>
+    <script>
+      const COLOR_A = "#e07b39";
+      const COLOR_B = "#3b6abd";
 
-const MIN=1, MAX=4;
-const STORE_KEY="hmw.v1";
-// Categories are data now (live in the store, editable in-app). CONFIG.categories is
-// only the default seed. CATS/N are kept in sync with the store via syncCats().
-let CATS=CONFIG.categories.slice();
-let DESCS=[];
-let N=CATS.length;
-function syncCats(){ CATS=store.categories; DESCS=store.descriptions; N=CATS.length; }
+      let teams = [],
+        rounds = [];
+      let activeTeam = null;
+      let activeTab = "snapshot";
+      let latestData = null;
 
-// ---------- persistence ----------
-// Storage is wrapped so a blocked/absent localStorage (e.g. opening the file
-// directly in some browsers) can never crash the page. Falls back to in-memory:
-// the tool still works for the session, it just won't remember after a reload.
-let _mem=null, storageOK=true;
-const SAFE={
-  get(){ try { return localStorage.getItem(STORE_KEY); } catch(e){ storageOK=false; return _mem; } },
-  set(v){ try { localStorage.setItem(STORE_KEY, v); } catch(e){ storageOK=false; _mem=v; } },
-};
-function uid(){ return "t"+Math.floor(performance.now()*1000).toString(36)+Math.floor(performance.now()).toString(36); }
-function seedDescs(names){ return names.map(n=>{const d=CONFIG.descriptions[n]; return d?{q:d.q,look:d.look}:{q:"",look:""};}); }
-function seed(){ return { categories: CONFIG.categories.slice(), descriptions: seedDescs(CONFIG.categories), questions: CONFIG.categories.map(()=>[]), teams:[ {id:uid(), name:"Easy Portuguese", scores:[3,2,4,3,1,4,2], view:"wheel"} ], activeId:null }; }
-function normalise(s){
-  if(!s || !s.teams || !s.teams.length) s=seed();
-  if(!Array.isArray(s.categories) || !s.categories.length) s.categories=CONFIG.categories.slice();
-  const n=s.categories.length;
-  // Descriptions are parallel to categories by index. Backfill any that are missing or empty
-  // from the defaults (keyed by name), so existing stored data picks up Cari's text on load.
-  if(!Array.isArray(s.descriptions)) s.descriptions=[];
-  s.descriptions = s.categories.map((name,i)=>{
-    const ex=s.descriptions[i];
-    if(ex && typeof ex==="object" && ((ex.q&&ex.q.trim())||(ex.look&&ex.look.trim()))) return {q:ex.q||"",look:ex.look||""};
-    const def=CONFIG.descriptions[name];
-    return def ? {q:def.q,look:def.look} : {q:(ex&&ex.q)||"",look:(ex&&ex.look)||""};
-  });
-  // Questions are parallel to categories by index; each is a list of question strings.
-  if(!Array.isArray(s.questions)) s.questions=[];
-  s.questions = s.categories.map((name,i)=>Array.isArray(s.questions[i]) ? s.questions[i].filter(q=>typeof q==="string") : []);
-  if(!s.activeId || !s.teams.find(t=>t.id===s.activeId)) s.activeId=s.teams[0].id;
-  s.teams.forEach(t=>{ if(!Array.isArray(t.scores)) t.scores=[]; while(t.scores.length<n) t.scores.push(3); t.scores=t.scores.slice(0,n); if(!t.view) t.view="wheel"; });
-  return s;
-}
-function load(){ let s; try { s=JSON.parse(SAFE.get()); } catch(e){ s=null; } return normalise(s); }
+      // ---- helpers ----
+      function setContent(id, html) {
+        document.getElementById(id).innerHTML = html;
+      }
+      function spinner() {
+        return '<div class="state-msg"><span class="spinner"></span></div>';
+      }
+      function noData() {
+        return '<div class="state-msg">No data yet for this round.</div>';
+      }
+      function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? el.value : null;
+      }
+      function scaleColor(s) {
+        return (SCALE[Math.round(s)] || SCALE[MAX]).color;
+      }
+      function scaleLabel(s) {
+        return (SCALE[Math.round(s)] || SCALE[MAX]).label;
+      }
 
-// Shared backend (optional). If /api/data is live, the tool reads/writes one shared
-// store so everyone with the link sees the same teams; editing needs the team password.
-// If the API isn't there, it falls back to per-browser localStorage (unchanged).
-let backend=false;
-let editPassword=(()=>{ try { return sessionStorage.getItem("hmw.pw"); } catch(e){ return null; } })();
-function persistLocal(){ SAFE.set(JSON.stringify(store)); }      // local cache / navigation state
-function persist(){ persistLocal(); if(backend) serverSave(); }  // a real data edit
-async function serverSave(){
-  if(!editPassword){
-    editPassword=prompt("Enter the team password to save changes to the shared wheel:");
-    if(!editPassword) return;                                    // cancelled — keep local copy, don't nag
-    try { sessionStorage.setItem("hmw.pw", editPassword); } catch(e){}
-  }
-  try{
-    const r=await fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:editPassword,store})});
-    if(r.status===401){ editPassword=null; try{ sessionStorage.removeItem("hmw.pw"); }catch(e){} alert("That password wasn't right. Your change is saved on this device; edit again to re-enter it."); }
-    else if(!r.ok){ alert("Couldn't save to the shared store just now. Your change is kept on this device — use Download backup if it matters."); }
-  }catch(e){ alert("Couldn't reach the shared store. Your change is kept on this device."); }
-}
+      // ---- tab switching ----
+      function switchTab(name) {
+        activeTab = name;
+        document
+          .querySelectorAll(".view-tab")
+          .forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) =>
+            p.classList.toggle("active", p.id === "panel-" + name),
+          );
+        if (name === "roundround") fetchRoundRound();
+      }
+      document
+        .querySelectorAll(".view-tab")
+        .forEach((b) =>
+          b.addEventListener("click", () => switchTab(b.dataset.tab)),
+        );
 
-let store=null, scores=[], variant="wheel";
-let openOnPage=new Set();   // which category descriptions are expanded on the page (by index)
-const active=()=>store.teams.find(t=>t.id===store.activeId);
+      // ---- team switching ----
+      function switchTeam(name) {
+        activeTeam = name;
+        document
+          .querySelectorAll(".team-tab")
+          .forEach((b) => b.classList.toggle("active", b.textContent === name));
+        fetchLatest();
+        if (activeTab === "roundround") fetchRoundRound();
+      }
 
-// ---------- geometry helpers ----------
-const NS="http://www.w3.org/2000/svg";
-const SIZE=520,C=SIZE/2,MAXR=160;
-const colorFor=s=>(CONFIG.scale[Math.round(s)]||CONFIG.scale[MAX]).color;
-const angleFor=i=>(-90+i*(360/N))*Math.PI/180;
-const radiusFor=s=>{const inner=MAXR*0.16;return inner+(s-MIN)/(MAX-MIN)*(MAXR-inner);};
-const pt=(a,r)=>[C+r*Math.cos(a),C+r*Math.sin(a)];
-function el(n,a,t){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;return e;}
-function svgEl(){const s=document.createElementNS(NS,"svg");s.setAttribute("viewBox","-110 0 740 540");s.setAttribute("width","100%");s.style.maxWidth="660px";return s;}
-function labelAt(svg,i,extra){
-  const a=angleFor(i);const [lx,ly]=pt(a,MAXR+22+(extra||0));
-  const anchor=Math.abs(lx-C)<6?"middle":(lx<C?"end":"start");
-  const words=CATS[i].split(" ");
-  const lines=words.length>2?[words.slice(0,Math.ceil(words.length/2)).join(" "),words.slice(Math.ceil(words.length/2)).join(" ")]:[CATS[i]];
-  const t=el("text",{x:lx,y:ly-(lines.length-1)*6,"text-anchor":anchor,"font-size":11,fill:"#555","font-weight":600});
-  lines.forEach((ln,k)=>t.appendChild(el("tspan",{x:lx,dy:k===0?0:13},ln)));
-  svg.appendChild(t);
-}
+      // ---- tab 1 + 2: latest round ----
+      async function fetchLatest() {
+        if (!rounds.length) return;
+        setContent("snapshot-content", spinner());
+        setContent("selfreviewer-content", spinner());
+        try {
+          latestData = await fetchScores(activeTeam, rounds[0]);
+          console.log("[hmw] fetchScores:", latestData);
+          renderSnapshot();
+          renderSelfReviewer();
+        } catch (e) {
+          console.error("[hmw] fetchLatest error:", e);
+          setContent("snapshot-content", noData());
+          setContent("selfreviewer-content", noData());
+        }
+      }
 
-// ---------- renderers ----------
-function renderWheel(){
-  const svg=svgEl();const half=Math.PI/N;
-  for(let s=MIN;s<=MAX;s++){svg.appendChild(el("circle",{cx:C,cy:C,r:radiusFor(s),fill:"none",stroke:"#ece9e4","stroke-width":1}));}
-  for(let i=0;i<N;i++){
-    const a0=angleFor(i)-half,a1=angleFor(i)+half,r=radiusFor(scores[i]);
-    const [x0,y0]=pt(a0,r),[x1,y1]=pt(a1,r);
-    svg.appendChild(el("path",{d:`M ${C} ${C} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z`,fill:colorFor(scores[i]),"fill-opacity":0.78,stroke:"#fff","stroke-width":1.5}));
-    labelAt(svg,i);
-  }
-  return svg;
-}
-function renderHub(){
-  const svg=svgEl();const bScale=Math.min(1,8.5/N);const rInner=58,rOuter=152,rxB=60*bScale,ryB=27*bScale,bubbleGap=18;
-  const rH=s=>rInner+(s-MIN)/(MAX-MIN)*(rOuter-rInner);
-  // distance from an axis-aligned ellipse's centre to its edge along direction `a`;
-  // used so every bubble's inner edge sits the same gap from the spoke, not its centre.
-  const ellipseReach=a=>(rxB*ryB)/Math.sqrt(Math.pow(ryB*Math.cos(a),2)+Math.pow(rxB*Math.sin(a),2));
-  const team=active().name||"Team";
-  for(let i=0;i<N;i++){
-    const a=angleFor(i);
-    const [sx,sy]=pt(a,rInner-6),[ex,ey]=pt(a,rOuter+4);
-    svg.appendChild(el("line",{x1:sx,y1:sy,x2:ex,y2:ey,stroke:"#bdbab4","stroke-width":1.4}));
-    const perp=a+Math.PI/2;
-    for(let s=MIN;s<=MAX;s++){const r=rH(s);const[cx,cy]=pt(a,r);
-      svg.appendChild(el("line",{x1:cx+5*Math.cos(perp),y1:cy+5*Math.sin(perp),x2:cx-5*Math.cos(perp),y2:cy-5*Math.sin(perp),stroke:"#cbc8c2","stroke-width":1.2}));
-      if(i===0)svg.appendChild(el("text",{x:cx+11,y:cy+3.5,"font-size":9,fill:"#aaa"},s));
-    }
-    const[mx,my]=pt(a,rH(scores[i]));
-    svg.appendChild(el("circle",{cx:mx,cy:my,r:6.5,fill:colorFor(scores[i]),stroke:"#fff","stroke-width":1.5}));
-    const[bx,by]=pt(a,rOuter+bubbleGap+ellipseReach(a));
-    svg.appendChild(el("ellipse",{cx:bx,cy:by,rx:rxB,ry:ryB,fill:"#fff",stroke:colorFor(scores[i]),"stroke-width":1.6}));
-    const words=CATS[i].split(" ");const lines=[];let cur="";
-    words.forEach(w=>{if((cur+" "+w).trim().length>14){lines.push(cur.trim());cur=w;}else cur=(cur+" "+w).trim();});
-    if(cur)lines.push(cur);
-    const t=el("text",{x:bx,y:by-(Math.min(lines.length,3)-1)*5,"text-anchor":"middle","font-size":Math.max(8,9.5*bScale),fill:"#444","font-weight":600});
-    lines.slice(0,3).forEach((ln,k)=>t.appendChild(el("tspan",{x:bx,dy:k===0?0:11},ln)));
-    svg.appendChild(t);
-  }
-  svg.appendChild(el("ellipse",{cx:C,cy:C,rx:50,ry:36,fill:"#fbfaf8",stroke:"#9a9690","stroke-width":1.6}));
-  const tl=team.split(" ");const hl=tl.length>1?[tl[0],tl.slice(1).join(" ")]:[team];
-  const ht=el("text",{x:C,y:C-(hl.length-1)*6+3,"text-anchor":"middle","font-size":12,fill:"#333","font-weight":650});
-  hl.forEach((ln,k)=>ht.appendChild(el("tspan",{x:C,dy:k===0?0:14},ln)));
-  svg.appendChild(ht);
-  return svg;
-}
-function renderRadar(){
-  const svg=svgEl();const accent="#5b6b7a";
-  for(let s=MIN;s<=MAX;s++){const ring=[];for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),radiusFor(s));ring.push(`${x},${y}`);}svg.appendChild(el("polygon",{points:ring.join(" "),fill:"none",stroke:"#ece9e4","stroke-width":1}));}
-  for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),MAXR);svg.appendChild(el("line",{x1:C,y1:C,x2:x,y2:y,stroke:"#eceae5","stroke-width":1}));}
-  const poly=[];for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),radiusFor(scores[i]));poly.push(`${x},${y}`);}
-  svg.appendChild(el("polygon",{points:poly.join(" "),fill:accent,"fill-opacity":0.12,stroke:accent,"stroke-width":2}));
-  for(let i=0;i<N;i++){const[x,y]=pt(angleFor(i),radiusFor(scores[i]));
-    svg.appendChild(el("circle",{cx:x,cy:y,r:7,fill:colorFor(scores[i]),stroke:"#fff","stroke-width":1.5}));labelAt(svg,i);}
-  return svg;
-}
-function renderBars(){
-  const box=document.createElement("div");box.className="bars";
-  CATS.forEach((cat,i)=>{
-    const r=document.createElement("div");r.className="bar-row";
-    const pct=((scores[i]-MIN)/(MAX-MIN))*88+12;
-    r.innerHTML=`<div class="lab"><b>${cat}</b><span style="color:${colorFor(scores[i])};font-weight:700;">${scores[i]} · ${CONFIG.scale[scores[i]].label}</span></div>
-      <div class="track"><div class="fill" style="width:${pct}%;background:${colorFor(scores[i])}"></div></div>`;
-    box.appendChild(r);
-  });
-  return box;
-}
+      function renderSnapshot() {
+        const el = document.getElementById("snapshot-content");
+        el.innerHTML = "";
+        if (!latestData?.teamMember?.length) {
+          el.innerHTML = noData();
+          return;
+        }
 
-// ---------- view assembly ----------
-function render(){
-  const canvas=document.getElementById("canvas");canvas.innerHTML="";
-  if(variant==="wheel")canvas.appendChild(renderWheel());
-  else if(variant==="hub")canvas.appendChild(renderHub());
-  else if(variant==="radar")canvas.appendChild(renderRadar());
-  else canvas.appendChild(renderBars());
-  document.getElementById("blurb").textContent=BLURBS[variant];
-  caption();legend();
-}
-function caption(){const avg=(scores.reduce((a,b)=>a+b,0)/N).toFixed(1);document.getElementById("caption").innerHTML=`<strong>${active().name}</strong> · average ${avg} / ${MAX}`;}
-function legend(){const w=document.getElementById("legend");w.innerHTML="";for(let s=MIN;s<=MAX;s++){const sp=document.createElement("span");sp.innerHTML=`<span class="dot" style="background:${CONFIG.scale[s].color}"></span>${s} · ${CONFIG.scale[s].label}`;w.appendChild(sp);}}
-function buildRows(){const wrap=document.getElementById("rows");wrap.innerHTML="";
-  CATS.forEach((cat,i)=>{
-    const d=DESCS[i]||{};const hasDesc=!!((d.q&&d.q.trim())||(d.look&&d.look.trim()));
-    const cell=document.createElement("div");cell.className="catcell";if(hasDesc&&openOnPage.has(i))cell.classList.add("open");
-    const row=document.createElement("div");row.className="row";
-    const name=document.createElement("div");name.className="name";
-    const lab=document.createElement("span");lab.textContent=cat;name.appendChild(lab);
-    if(hasDesc){const info=document.createElement("button");info.className="info";info.textContent="i";
-      info.title="Show description";info.setAttribute("aria-label","Toggle description for "+cat);
-      info.addEventListener("click",()=>{if(openOnPage.has(i))openOnPage.delete(i);else openOnPage.add(i);cell.classList.toggle("open");});
-      name.appendChild(info);}
-    const seg=document.createElement("div");seg.className="seg";
-    for(let s=MIN;s<=MAX;s++){const b=document.createElement("button");b.textContent=s;
-      b.title=s+" · "+CONFIG.scale[s].label;
-      if(scores[i]===s){b.classList.add("active");b.style.background=CONFIG.scale[s].color;}
-      b.addEventListener("click",()=>{scores[i]=s;active().scores=scores;persist();buildRows();render();});seg.appendChild(b);}
-    row.appendChild(name);row.appendChild(seg);cell.appendChild(row);
-    if(hasDesc){const panel=document.createElement("div");panel.className="descpanel";
-      if(d.q&&d.q.trim()){const l=document.createElement("div");l.className="dlabel";l.textContent="Key question";
-        const t=document.createElement("div");t.className="dq";t.textContent=d.q;panel.appendChild(l);panel.appendChild(t);}
-      if(d.look&&d.look.trim()){const l=document.createElement("div");l.className="dlabel";l.textContent="Things to look at";
-        const t=document.createElement("div");t.className="dlook";t.textContent=d.look;panel.appendChild(l);panel.appendChild(t);}
-      cell.appendChild(panel);}
-    wrap.appendChild(cell);});
-}
-function buildScaleKey(){const k=document.getElementById("scaleKey");
-  k.innerHTML='<div class="skh">What the scores mean</div>'+
-    [MIN,2,3,MAX].map(s=>`<div class="ski"><span class="dot" style="background:${CONFIG.scale[s].color}"></span><b>${s}</b> ${CONFIG.scale[s].label}</div>`).join("");}
-function buildTeamSel(){const sel=document.getElementById("teamSel");sel.innerHTML="";
-  store.teams.forEach(t=>{const o=document.createElement("option");o.value=t.id;o.textContent=t.name;if(t.id===store.activeId)o.selected=true;sel.appendChild(o);});
-}
-// Re-point the UI at the current active team. Pure view update — no save.
-function applyActive(){scores=active().scores;variant=active().view||"wheel";
-  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
-  buildTeamSel();buildRows();render();}
+        const badge = document.createElement("div");
+        badge.className = "snapshot-label";
+        badge.innerHTML = `Latest round <span class="snapshot-round">${rounds[0]}</span>`;
+        el.appendChild(badge);
 
-// ---------- team actions ----------
-// Switching team / view is navigation -> persistLocal (no password). Changing
-// scores or adding/renaming/deleting a team is a data edit -> persist (saves to the shared store).
-document.getElementById("teamSel").addEventListener("change",e=>{store.activeId=e.target.value;persistLocal();applyActive();});
-document.getElementById("newTeam").addEventListener("click",()=>{
-  const name=prompt("New team name:","Team "+(store.teams.length+1));if(!name)return;
-  const t={id:uid(),name:name.trim(),scores:Array(N).fill(3),view:variant};store.teams.push(t);store.activeId=t.id;persist();applyActive();});
-document.getElementById("renameTeam").addEventListener("click",()=>{
-  const name=prompt("Rename team:",active().name);if(!name)return;active().name=name.trim();persist();buildTeamSel();caption();render();});
-document.getElementById("delTeam").addEventListener("click",()=>{
-  if(store.teams.length<=1){alert("Keep at least one team.");return;}
-  if(!confirm(`Delete "${active().name}"? This can't be undone.`))return;
-  store.teams=store.teams.filter(t=>t.id!==store.activeId);store.activeId=store.teams[0].id;persist();applyActive();});
+        const outer = document.createElement("div");
+        outer.className = "single-wheel";
+        const card = document.createElement("div");
+        card.className = "wheel-card";
+        renderWheel(card, latestData.teamMember, latestData.categories);
+        outer.appendChild(card);
+        outer.appendChild(
+          buildScoreList(latestData.categories, latestData.teamMember),
+        );
+        el.appendChild(outer);
+      }
 
-// ---------- tabs ----------
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{
-  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");variant=b.dataset.v;active().view=variant;persistLocal();render();}));
+      function renderSelfReviewer() {
+        const el = document.getElementById("selfreviewer-content");
+        el.innerHTML = "";
+        if (!latestData?.teamMember?.length) {
+          el.innerHTML = noData();
+          return;
+        }
+        const cols = document.createElement("div");
+        cols.className = "two-cols";
+        [
+          ["Team", latestData.teamMember, COLOR_A],
+          ["Reviewer", latestData.reviewer, COLOR_B],
+        ].forEach(([label, scores, color]) => {
+          const col = document.createElement("div");
+          col.className = "col";
+          const lbl = document.createElement("div");
+          lbl.className = "wheel-label";
+          lbl.style.color = color;
+          lbl.textContent = label;
+          const card = document.createElement("div");
+          card.className = "wheel-card";
+          renderWheel(card, scores, latestData.categories);
+          col.appendChild(lbl);
+          col.appendChild(card);
+          col.appendChild(buildScoreList(latestData.categories, scores));
+          cols.appendChild(col);
+        });
+        el.appendChild(cols);
+      }
 
-// ---------- category editor ----------
-// Categories are global (every team is scored on the same list). The editor works on a
-// draft; each row remembers its origin index ("from") so that on Save we can realign every
-// team's scores: renamed keeps its score, new starts at 3, deleted drops out.
-let catDraft=[];
-let dragIdx=null;   // index in catDraft of the row being dragged (null when idle)
-function renderCatRows(){
-  const list=document.getElementById("catList");list.innerHTML="";
-  catDraft.forEach((d,i)=>{
-    const item=document.createElement("div");item.className="cat-item";
-    const row=document.createElement("div");row.className="cat-row";
-    if(i===dragIdx)row.classList.add("dragging");
-    const grip=document.createElement("div");grip.className="grip";grip.textContent="⠿";grip.title="Drag to reorder";
-    grip.addEventListener("pointerdown",e=>startDrag(e,i));
-    const inp=document.createElement("input");inp.type="text";inp.value=d.name;
-    inp.addEventListener("input",()=>{catDraft[i].name=inp.value;});
-    const info=document.createElement("button");info.className="dtoggle"+(d._open?" active":"");info.textContent="i";
-    info.title="Edit description";info.setAttribute("aria-label","Edit description for "+(d.name||"category"));
-    info.addEventListener("click",()=>{catDraft[i]._open=!catDraft[i]._open;renderCatRows();});
-    const del=document.createElement("button");del.className="del";del.textContent="×";del.title="Delete category";
-    del.addEventListener("click",()=>{catDraft.splice(i,1);renderCatRows();});
-    row.appendChild(grip);row.appendChild(inp);row.appendChild(info);row.appendChild(del);
-    item.appendChild(row);
-    if(d._open){
-      const panel=document.createElement("div");panel.className="cat-desc";
-      const ql=document.createElement("div");ql.className="dlabel";ql.textContent="Key question";
-      const qf=document.createElement("textarea");qf.className="dfield";qf.rows=2;qf.value=d.q||"";
-      qf.placeholder="e.g. How consistently do we…";
-      qf.addEventListener("input",()=>{catDraft[i].q=qf.value;});
-      const ll=document.createElement("div");ll.className="dlabel";ll.style.marginTop="9px";ll.textContent="Things to look at";
-      const lf=document.createElement("textarea");lf.className="dfield";lf.rows=3;lf.value=d.look||"";
-      lf.placeholder="e.g. Production quality, regularity…";
-      lf.addEventListener("input",()=>{catDraft[i].look=lf.value;});
-      panel.appendChild(ql);panel.appendChild(qf);panel.appendChild(ll);panel.appendChild(lf);
+      // ---- tab 3: round vs round ----
+      async function fetchRoundRound() {
+        const roundA = getVal("roundA"),
+          roundB = getVal("roundB");
+        if (!roundA || !roundB) return;
+        const key = getVal("roleRR") || "teamMember";
+        setContent("roundround-content", spinner());
+        try {
+          const [dataA, dataB] = await Promise.all([
+            fetchScores(activeTeam, roundA),
+            fetchScores(activeTeam, roundB),
+          ]);
+          renderRoundRound(dataA, dataB, roundA, roundB, key);
+        } catch (e) {
+          setContent("roundround-content", noData());
+        }
+      }
 
-      // self-assessment questions for this category
-      const qs=catDraft[i].questions||(catDraft[i].questions=[]);
-      const qsec=document.createElement("div");qsec.className="qsec";
-      const qlab=document.createElement("div");qlab.className="dlabel";qlab.textContent="Self-assessment questions (1–4)";
-      qsec.appendChild(qlab);
-      if(!qs.length){const e=document.createElement("div");e.className="qempty";e.textContent="No questions yet — teams will answer these to compute their self-score.";qsec.appendChild(e);}
-      qs.forEach((qt,qi)=>{
-        const qrow=document.createElement("div");qrow.className="qrow";
-        const num=document.createElement("span");num.className="qnum";num.textContent=(qi+1);
-        const qin=document.createElement("input");qin.type="text";qin.value=qt;qin.placeholder="e.g. We publish on a consistent schedule";
-        qin.addEventListener("input",()=>{qs[qi]=qin.value;});
-        const up=document.createElement("button");up.className="qbtn";up.textContent="↑";up.title="Move up";up.disabled=qi===0;
-        up.addEventListener("click",()=>{const t=qs[qi-1];qs[qi-1]=qs[qi];qs[qi]=t;renderCatRows();});
-        const dn=document.createElement("button");dn.className="qbtn";dn.textContent="↓";dn.title="Move down";dn.disabled=qi===qs.length-1;
-        dn.addEventListener("click",()=>{const t=qs[qi+1];qs[qi+1]=qs[qi];qs[qi]=t;renderCatRows();});
-        const qdel=document.createElement("button");qdel.className="qbtn qdel";qdel.textContent="×";qdel.title="Delete question";
-        qdel.addEventListener("click",()=>{qs.splice(qi,1);renderCatRows();});
-        qrow.appendChild(num);qrow.appendChild(qin);qrow.appendChild(up);qrow.appendChild(dn);qrow.appendChild(qdel);
-        qsec.appendChild(qrow);
-      });
-      const addq=document.createElement("button");addq.className="addq";addq.textContent="+ Add question";
-      addq.addEventListener("click",()=>{qs.push("");renderCatRows();
-        const reItem=document.querySelectorAll("#catList .cat-item")[i];
-        if(reItem){const inputs=reItem.querySelectorAll(".qrow input");const last=inputs[inputs.length-1];if(last)last.focus();}});
-      qsec.appendChild(addq);
-      panel.appendChild(qsec);
-      item.appendChild(panel);
-    }
-    list.appendChild(item);
-  });
-}
-// Pointer-based reorder (not the native drag API, which is janky and dead on touch).
-// The dragged row stays highlighted in place; the rest reorder live under the pointer.
-// Nothing commits until Save — catDraft order *is* the order, and `from` carries scores.
-function startDrag(e,i){
-  e.preventDefault();
-  dragIdx=i;
-  document.body.classList.add("dragging-active");
-  renderCatRows();
-  const move=ev=>{
-    const rows=[...document.getElementById("catList").children];
-    let target=catDraft.length-1;                       // default: past the last midpoint -> end
-    for(let k=0;k<rows.length;k++){
-      const r=rows[k].getBoundingClientRect();
-      if(ev.clientY < r.top+r.height/2){ target=k; break; }
-    }
-    if(target!==dragIdx){
-      const [item]=catDraft.splice(dragIdx,1);
-      catDraft.splice(target,0,item);
-      dragIdx=target;
-      renderCatRows();
-    }
-  };
-  const up=()=>{
-    dragIdx=null;
-    document.body.classList.remove("dragging-active");
-    document.removeEventListener("pointermove",move);
-    document.removeEventListener("pointerup",up);
-    renderCatRows();
-  };
-  document.addEventListener("pointermove",move);
-  document.addEventListener("pointerup",up);
-}
-function openCatEditor(){
-  catDraft=store.categories.map((name,idx)=>({name, q:(store.descriptions[idx]||{}).q||"", look:(store.descriptions[idx]||{}).look||"", questions:(store.questions[idx]||[]).slice(), from:idx, _open:false}));
-  document.getElementById("catWarn").textContent="";
-  renderCatRows();
-  document.getElementById("catModal").classList.add("open");
-}
-function closeCatEditor(){document.getElementById("catModal").classList.remove("open");}
-document.getElementById("editCats").addEventListener("click",openCatEditor);
-document.getElementById("catCancel").addEventListener("click",closeCatEditor);
-document.getElementById("catModal").addEventListener("click",e=>{if(e.target.id==="catModal")closeCatEditor();});
-document.getElementById("addCat").addEventListener("click",()=>{
-  catDraft.push({name:"New category",q:"",look:"",questions:[],from:null,_open:false});renderCatRows();
-  const inputs=document.getElementById("catList").querySelectorAll(".cat-row input");
-  const last=inputs[inputs.length-1];if(last){last.focus();last.select();}
-});
-document.getElementById("catSave").addEventListener("click",()=>{
-  const clean=catDraft.filter(d=>d.name.trim());
-  if(clean.length<3){document.getElementById("catWarn").textContent="Keep at least 3 categories.";return;}
-  const kept=new Set(clean.filter(d=>d.from!=null).map(d=>d.from));
-  const deleted=store.categories.filter((name,idx)=>!kept.has(idx));
-  if(deleted.length && !confirm(`Delete ${deleted.length} categor${deleted.length>1?"ies":"y"}: "${deleted.join('", "')}"?\n\nThis removes ${deleted.length>1?"their":"its"} scores from every team and can't be undone.`)) return;
-  store.categories=clean.map(d=>d.name.trim());
-  store.descriptions=clean.map(d=>({q:(d.q||"").trim(),look:(d.look||"").trim()}));
-  store.questions=clean.map(d=>(d.questions||[]).map(q=>(q||"").trim()).filter(Boolean));
-  store.teams.forEach(t=>{const old=t.scores;t.scores=clean.map(d=> d.from!=null && d.from<old.length ? old[d.from] : 3);});
-  syncCats();
-  openOnPage.clear();   // indices may have shifted; start the page's panels closed
-  persist();            // shared data edit -> password-gated
-  closeCatEditor();
-  applyActive();
-});
+      function renderRoundRound(dataA, dataB, labelA, labelB, key) {
+        const el = document.getElementById("roundround-content");
+        el.innerHTML = "";
+        const cols = document.createElement("div");
+        cols.className = "two-cols";
+        [
+          [dataA, labelA, COLOR_A],
+          [dataB, labelB, COLOR_B],
+        ].forEach(([data, label, color]) => {
+          const col = document.createElement("div");
+          col.className = "col";
+          const lbl = document.createElement("div");
+          lbl.className = "wheel-label";
+          lbl.style.color = color;
+          lbl.textContent = label;
+          const card = document.createElement("div");
+          card.className = "wheel-card";
+          renderWheel(card, data[key], data.categories);
+          col.appendChild(lbl);
+          col.appendChild(card);
+          cols.appendChild(col);
+        });
+        el.appendChild(cols);
+        el.appendChild(
+          buildDiffTable(dataA.categories, dataA[key], dataB[key], labelA, labelB),
+        );
+      }
 
-// ---------- export ----------
-function safeName(s){return (s||"team").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase();}
-function downloadBlob(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-document.getElementById("pngBtn").addEventListener("click",()=>{
-  const svg=document.querySelector("#canvas svg");
-  if(!svg){alert("PNG export works on the chart views (wheel, hub, radar). For the bars view, use Save as PDF.");return;}
-  const vb=svg.getAttribute("viewBox").split(" ").map(Number);const W=vb[2],H=vb[3],headerH=64,scale=2;
-  const clone=svg.cloneNode(true);clone.setAttribute("width",W);clone.setAttribute("height",H);
-  const xml=new XMLSerializer().serializeToString(clone);
-  const src="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(xml)));
-  const img=new Image();
-  img.onload=()=>{
-    const canvas=document.createElement("canvas");canvas.width=W*scale;canvas.height=(H+headerH)*scale;
-    const ctx=canvas.getContext("2d");ctx.scale(scale,scale);
-    ctx.fillStyle="#ffffff";ctx.fillRect(0,0,W,H+headerH);
-    const avg=(scores.reduce((a,b)=>a+b,0)/N).toFixed(1);
-    ctx.fillStyle="#2b2b2b";ctx.textAlign="center";ctx.font="650 22px -apple-system,Helvetica,Arial,sans-serif";
-    ctx.fillText(active().name,W/2,38);
-    ctx.fillStyle="#777";ctx.font="14px -apple-system,Helvetica,Arial,sans-serif";
-    ctx.fillText("average "+avg+" / "+MAX,W/2,58);
-    ctx.drawImage(img,0,headerH,W,H);
-    canvas.toBlob(b=>downloadBlob(b,safeName(active().name)+"-"+variant+".png"),"image/png");
-  };
-  img.onerror=()=>alert("Couldn't render the PNG. Try Save as PDF instead.");
-  img.src=src;
-});
-document.getElementById("pdfBtn").addEventListener("click",()=>window.print());
+      // ---- table builders ----
+      function buildScoreList(cats, scores) {
+        const card = document.createElement("div");
+        card.className = "score-list";
+        const t = document.createElement("table");
+        t.className = "score-table-sm";
+        cats.forEach((cat, i) => {
+          const s = scores[i];
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${cat}</td>
+      <td><span class="pill" style="background:${scaleColor(s)}">${s.toFixed(1)}</span></td>
+      <td style="color:${scaleColor(s)};font-weight:600">${scaleLabel(s)}</td>`;
+          t.appendChild(tr);
+        });
+        card.appendChild(t);
+        return card;
+      }
 
-// ---------- backup ----------
-document.getElementById("backupBtn").addEventListener("click",()=>{
-  downloadBlob(new Blob([JSON.stringify(store,null,2)],{type:"application/json"}),"health-wheel-backup.json");});
-document.getElementById("restoreBtn").addEventListener("click",()=>document.getElementById("fileIn").click());
-document.getElementById("fileIn").addEventListener("change",e=>{
-  const f=e.target.files[0];if(!f)return;const reader=new FileReader();
-  reader.onload=()=>{try{const data=JSON.parse(reader.result);
-      if(!data.teams||!data.teams.length)throw 0;
-      if(!confirm(backend?"Load this backup? It replaces the shared teams for everyone.":"Load this backup? It replaces the teams saved in this browser."))return;
-      store=normalise(data);
-      syncCats();persist();applyActive();
-    }catch(err){alert("That doesn't look like a valid backup file.");}
-    e.target.value="";};
-  reader.readAsText(f);});
+      function buildDiffTable(cats, scoresA, scoresB, labelA, labelB) {
+        const card = document.createElement("div");
+        card.className = "diff-table";
+        const t = document.createElement("table");
+        t.className = "score-table";
+        const head = document.createElement("thead");
+        head.innerHTML = `<tr>
+    <th>Category</th>
+    <th style="color:${COLOR_A}">${labelA}</th>
+    <th style="color:${COLOR_B}">${labelB}</th>
+    <th>Diff</th>
+  </tr>`;
+        t.appendChild(head);
+        const body = document.createElement("tbody");
+        cats.forEach((cat, i) => {
+          const a = scoresA[i],
+            b = scoresB[i];
+          const diff = (b - a).toFixed(1);
+          const diffStr = diff > 0 ? "+" + diff : diff;
+          const diffColor = b > a ? "#3a9b5c" : b < a ? "#e5484d" : "#bbb";
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${cat}</td>
+      <td><span class="score-pill" style="background:${scaleColor(a)}">${a.toFixed(1)}</span></td>
+      <td><span class="score-pill" style="background:${scaleColor(b)}">${b.toFixed(1)}</span></td>
+      <td style="color:${diffColor};font-weight:800">${diffStr}</td>`;
+          body.appendChild(tr);
+        });
+        t.appendChild(body);
+        card.appendChild(t);
+        return card;
+      }
 
-// ---------- boot ----------
-function setHint(){const h=document.getElementById("hint");
-  if(backend) h.textContent="Saved to the shared store — everyone with the link sees the same teams. Editing asks for the team password.";
-  else if(storageOK) h.textContent="Teams are saved in this browser. Use Download backup to keep a copy you can move or restore.";
-  else h.textContent="Heads up: this browser is blocking local save, so teams won't survive a reload. Use Download backup to keep your data.";}
-async function boot(){
-  let serverStore=null;
-  try{ const r=await fetch("/api/data"); if(r.ok){ const j=await r.json(); backend=true; serverStore=j.store; } }catch(e){}
-  store = backend ? normalise(serverStore) : load();
-  syncCats();
-  scores=active().scores; variant=active().view;
-  setHint();
-  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("active",x.dataset.v===variant));
-  buildScaleKey();buildTeamSel();buildRows();render();
-}
-boot();
-</script>
-</body>
+      // ---- team tabs ----
+      function buildTeamTabs() {
+        const el = document.getElementById("teamTabs");
+        el.innerHTML = "";
+        teams.forEach((t) => {
+          const b = document.createElement("button");
+          b.className = "team-tab";
+          b.textContent = t;
+          if (t === activeTeam) b.classList.add("active");
+          b.addEventListener("click", () => switchTeam(t));
+          el.appendChild(b);
+        });
+      }
+
+      // ---- round selectors (tab 3) ----
+      function buildRoundSelectors() {
+        const selA = document.getElementById("roundA");
+        const selB = document.getElementById("roundB");
+        rounds.forEach((r, i) => {
+          const mkOpt = (sel) => {
+            const o = document.createElement("option");
+            o.value = r;
+            o.textContent = r;
+            sel.appendChild(o);
+          };
+          mkOpt(selA);
+          mkOpt(selB);
+          if (i === 1) selB.value = r;
+        });
+        selA.addEventListener("change", fetchRoundRound);
+        selB.addEventListener("change", fetchRoundRound);
+        document.getElementById("roleRR").addEventListener("change", fetchRoundRound);
+      }
+
+      // ---- boot ----
+      async function boot() {
+        setContent("snapshot-content", spinner());
+        setContent("selfreviewer-content", spinner());
+        setContent("roundround-content", spinner());
+        [teams, rounds] = await Promise.all([fetchTeams(), fetchRounds()]);
+        activeTeam = teams[0];
+        buildTeamTabs();
+        buildRoundSelectors();
+        fetchLatest();
+      }
+      boot();
+    </script>
+  </body>
 </html>
