@@ -245,7 +245,13 @@
         });
         el.appendChild(cols);
         el.appendChild(
-          buildDiffTable(dataA.categories, dataA[key], dataB[key], labelA, labelB),
+          buildDiffTable(
+            dataA.categories,
+            dataA[key],
+            dataB[key],
+            labelA,
+            labelB,
+          ),
         );
       }
 
@@ -330,12 +336,16 @@
         });
         selA.addEventListener("change", fetchRoundRound);
         selB.addEventListener("change", fetchRoundRound);
-        document.getElementById("roleRR").addEventListener("change", fetchRoundRound);
+        document
+          .getElementById("roleRR")
+          .addEventListener("change", fetchRoundRound);
       }
 
       // ---- embed mode ----
       if (new URLSearchParams(location.search).has("embed")) {
         document.querySelector(".topbar").style.display = "none";
+        document.querySelector(".page-title").style.display = "none";
+        document.querySelector(".page-sub").style.display = "none";
         document.body.style.background = "#fff";
       }
 
