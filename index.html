@@ -139,13 +139,14 @@
         try {
           latestData = await fetchScores(activeTeam, rounds[0]);
           console.log("[hmw] fetchScores:", latestData);
-          renderSnapshot();
-          renderSelfReviewer();
         } catch (e) {
           console.error("[hmw] fetchLatest error:", e);
           setContent("snapshot-content", noData());
           setContent("selfreviewer-content", noData());
+          return;
         }
+        renderSnapshot();
+        renderSelfReviewer();
       }
 
       function renderSnapshot() {
@@ -192,12 +193,19 @@
           lbl.className = "wheel-label";
           lbl.style.color = color;
           lbl.textContent = label;
-          const card = document.createElement("div");
-          card.className = "wheel-card";
-          renderWheel(card, scores, latestData.categories);
           col.appendChild(lbl);
-          col.appendChild(card);
-          col.appendChild(buildScoreList(latestData.categories, scores));
+          if (scores?.length) {
+            const card = document.createElement("div");
+            card.className = "wheel-card";
+            renderWheel(card, scores, latestData.categories);
+            col.appendChild(card);
+            col.appendChild(buildScoreList(latestData.categories, scores));
+          } else {
+            const msg = document.createElement("div");
+            msg.className = "state-msg";
+            msg.textContent = "No responses yet.";
+            col.appendChild(msg);
+          }
           cols.appendChild(col);
         });
         el.appendChild(cols);
@@ -236,23 +244,34 @@
           lbl.className = "wheel-label";
           lbl.style.color = color;
           lbl.textContent = label;
-          const card = document.createElement("div");
-          card.className = "wheel-card";
-          renderWheel(card, data[key], data.categories);
           col.appendChild(lbl);
-          col.appendChild(card);
+          const scores = data[key];
+          if (scores?.length) {
+            const card = document.createElement("div");
+            card.className = "wheel-card";
+            renderWheel(card, scores, data.categories);
+            col.appendChild(card);
+          } else {
+            const msg = document.createElement("div");
+            msg.className = "state-msg";
+            msg.textContent = "No responses yet.";
+            col.appendChild(msg);
+          }
           cols.appendChild(col);
         });
         el.appendChild(cols);
-        el.appendChild(
-          buildDiffTable(
-            dataA.categories,
-            dataA[key],
-            dataB[key],
-            labelA,
-            labelB,
-          ),
-        );
+        const scoresA = dataA[key], scoresB = dataB[key];
+        if (scoresA?.length && scoresB?.length) {
+          el.appendChild(
+            buildDiffTable(
+              dataA.categories,
+              scoresA,
+              scoresB,
+              labelA,
+              labelB,
+            ),
+          );
+        }
       }
 
       // ---- table builders ----
