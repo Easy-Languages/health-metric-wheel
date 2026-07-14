@@ -59,8 +59,8 @@ const COL = {
   // Systems & Execution (4 questions)
   systems: [9, 10, 11, 12],
 
-  // Educational Value (5 questions)
-  educational: [13, 14, 15, 16, 17],
+  // Educational Value (6 questions)
+  educational: [13, 14, 15, 16, 17, 34],
 
   // Audience Growth & Marketing (4 questions)
   growth: [18, 19, 20, 21],

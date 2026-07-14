@@ -1,4 +1,4 @@
-const _SURVEY_URL = "https://script.google.com/macros/s/AKfycbybn8RoM_spX_xoO-6vUIBTwSmc7vmD9TOe7i2s7kGt-i78By1DCTBrtRJ-T1E-8glY/exec";
+const _SURVEY_URL = "https://script.google.com/macros/s/AKfycbyiZqd_CktRnkI9KYJM3FukysCqnmmSAN64DLjp0YmRCD_vXwwpHiflNHKfepiJnk_E/exec";
 const _TTL = 3600000;
 
 const _cache = {
