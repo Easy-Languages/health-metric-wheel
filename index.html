@@ -209,6 +209,9 @@
           cols.appendChild(col);
         });
         el.appendChild(cols);
+        if (latestData.questions?.length) {
+          el.appendChild(buildQuestionTable(latestData.questions));
+        }
       }
 
       // ---- tab 3: round vs round ----
@@ -317,6 +320,67 @@
       <td><span class="score-pill" style="background:${scaleColor(a)}">${a.toFixed(1)}</span></td>
       <td><span class="score-pill" style="background:${scaleColor(b)}">${b.toFixed(1)}</span></td>
       <td style="color:${diffColor};font-weight:800">${diffStr}</td>`;
+          body.appendChild(tr);
+        });
+        t.appendChild(body);
+        card.appendChild(t);
+        return card;
+      }
+
+      function buildQuestionTable(questions) {
+        const card = document.createElement("details");
+        card.className = "qbreak";
+        const title = document.createElement("summary");
+        title.className = "qbreak-title";
+        title.textContent = "By Question — Team vs Reviewer";
+        card.appendChild(title);
+
+        const t = document.createElement("table");
+        t.className = "qtable";
+        const head = document.createElement("thead");
+        head.innerHTML = `<tr>
+      <th>Question</th>
+      <th style="color:${COLOR_A}">Team</th>
+      <th style="color:${COLOR_B}">Reviewer</th>
+      <th>Diff</th>
+    </tr>`;
+        t.appendChild(head);
+
+        const body = document.createElement("tbody");
+        let lastCategory = null;
+        questions.forEach((q) => {
+          if (q.category !== lastCategory) {
+            const catTr = document.createElement("tr");
+            catTr.className = "cat-row";
+            catTr.innerHTML = `<td colspan="4">${q.category}</td>`;
+            body.appendChild(catTr);
+            lastCategory = q.category;
+          }
+          const a = q.teamMember,
+            b = q.reviewer;
+          const aCell =
+            a != null
+              ? `<span class="pill" style="background:${scaleColor(a)}">${a.toFixed(1)}</span>`
+              : "—";
+          const bCell =
+            b != null
+              ? `<span class="pill" style="background:${scaleColor(b)}">${b.toFixed(1)}</span>`
+              : "—";
+          let diffCell;
+          if (a == null || b == null) {
+            diffCell = `<td class="diff-flat">—</td>`;
+          } else {
+            const diff = (b - a).toFixed(1);
+            const diffStr = diff > 0 ? "+" + diff : diff;
+            const cls = b > a ? "diff-up" : b < a ? "diff-down" : "diff-flat";
+            diffCell = `<td class="${cls}">${diffStr}</td>`;
+          }
+          const tr = document.createElement("tr");
+          tr.className = "q-row";
+          tr.innerHTML = `<td>${q.label}</td>
+      <td>${aCell}</td>
+      <td>${bCell}</td>
+      ${diffCell}`;
           body.appendChild(tr);
         });
         t.appendChild(body);

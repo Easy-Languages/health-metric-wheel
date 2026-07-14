@@ -187,6 +187,56 @@ svg text { font-family: 'Rubik', -apple-system, BlinkMacSystemFont, "Segoe UI", 
   color: #fff;
 }
 
+/* ---- question breakdown table (Team vs Reviewer) ---- */
+.qbreak {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  padding: 16px 20px;
+  margin-top: 24px;
+}
+.qbreak-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.qbreak-title::marker { color: #bbb; }
+.qbreak:not([open]) .qbreak-title { margin-bottom: 0; }
+.qtable { width: 100%; border-collapse: collapse; font-size: 14px; }
+.qtable th {
+  text-align: left;
+  padding: 6px 10px;
+  color: #888;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 2px solid var(--line);
+}
+.qtable th:not(:first-child) { text-align: center; }
+.qtable td { padding: 7px 10px; border-bottom: 1px solid #f0ede8; }
+.qtable tr.cat-row td {
+  padding-top: 16px;
+  padding-bottom: 4px;
+  border-bottom: none;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #1a1a1a;
+}
+.qtable tr.cat-row:first-child td { padding-top: 4px; }
+.qtable tr.q-row td:first-child { padding-left: 18px; font-weight: 100; }
+.qtable td:not(:first-child) { text-align: center; font-weight: 700; }
+.diff-up { color: #3a9b5c; }
+.diff-down { color: #e5484d; }
+.diff-flat { color: #bbb; }
+
 /* ---- selector row (Round vs Round tab) ---- */
 .selrow {
   display: flex;
