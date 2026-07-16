@@ -99,6 +99,17 @@
         const el = document.getElementById(id);
         return el ? el.value : null;
       }
+      function setTeamTabsDisabled(disabled) {
+        document
+          .querySelectorAll(".team-tab")
+          .forEach((b) => (b.disabled = disabled));
+      }
+      function setRoundControlsDisabled(disabled) {
+        ["roundA", "roundB", "roleRR"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.disabled = disabled;
+        });
+      }
       function scaleColor(s) {
         return (SCALE[Math.round(s)] || SCALE[MAX]).color;
       }
@@ -140,6 +151,7 @@
         if (!rounds.length) return;
         setContent("snapshot-content", spinner());
         setContent("selfreviewer-content", spinner());
+        setTeamTabsDisabled(true);
         try {
           latestData = await fetchScores(activeTeam, rounds[0]);
           console.log("[hmw] fetchScores:", latestData);
@@ -148,6 +160,8 @@
           setContent("snapshot-content", noData());
           setContent("selfreviewer-content", noData());
           return;
+        } finally {
+          setTeamTabsDisabled(false);
         }
         renderSnapshot();
         renderSelfReviewer();
@@ -225,6 +239,7 @@
         if (!roundA || !roundB) return;
         const key = getVal("roleRR") || "teamMember";
         setContent("roundround-content", spinner());
+        setRoundControlsDisabled(true);
         try {
           const [dataA, dataB] = await Promise.all([
             fetchScores(activeTeam, roundA),
@@ -233,6 +248,8 @@
           renderRoundRound(dataA, dataB, roundA, roundB, key);
         } catch (e) {
           setContent("roundround-content", noData());
+        } finally {
+          setRoundControlsDisabled(false);
         }
       }
 
